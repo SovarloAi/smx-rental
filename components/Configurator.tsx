@@ -205,17 +205,15 @@ export default function Configurator() {
       setTransportLoading(false);
       return;
     }
-    // Volledig adres voor nauwkeurige (huisnummer-)geocoding.
-    const address = [form.street, form.houseNumber, pc, form.city]
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .join(" ");
+    // Transportprijs altijd op basis van de postcode; de woonplaats gaat mee
+    // als validatiecheck (moet bij de postcode horen).
+    const city = form.city.trim();
     let cancelled = false;
     setTransportLoading(true);
     const timer = setTimeout(async () => {
       try {
         const params = new URLSearchParams({ postcode: pc });
-        if (address) params.set("address", address);
+        if (city) params.set("city", city);
         const res = await fetch(`/api/transport?${params.toString()}`);
         const data = (await res.json()) as TransportResult;
         if (!cancelled) setTransport(data);
@@ -229,7 +227,7 @@ export default function Configurator() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [form.street, form.houseNumber, form.postcode, form.city]);
+  }, [form.postcode, form.city]);
 
   const lightingCost = form.lighting ? LIGHTING_PRICE : 0;
   const sidewallsCost = form.sidewalls * SIDEWALL_PRICE;
@@ -831,14 +829,14 @@ function SidewallStepper({
     >
       <div className="flex items-center gap-3 sm:gap-4">
         <ZoomableImage image={image} onZoom={onZoom} />
-        <div className="flex flex-1 items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-2.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
             <h4 className="text-base font-semibold text-ink">Zijwanden</h4>
-            <span className="rounded-full bg-sand-100 px-2 py-0.5 text-[11px] font-medium text-sand-600">
+            <span className="inline-block whitespace-nowrap rounded-full bg-sand-100 px-3 py-1 text-[11px] font-medium text-sand-600">
               €50,- per zijwand per weekend
             </span>
           </div>
-          <div className="flex flex-none items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <StepperButton
               onClick={() => onChange(Math.max(0, value - 1))}
               disabled={value === 0}
@@ -988,7 +986,7 @@ function StepTransport({
             <label className="field-label">Straatnaam</label>
             <input
               type="text"
-              placeholder="bijv. Beukenlaan"
+              placeholder="bijv. Kapellerlaan"
               value={form.street}
               onChange={(e) => set("street", e.target.value)}
               className="field-input"
@@ -1000,7 +998,7 @@ function StepTransport({
               <label className="field-label">Huisnummer</label>
               <input
                 type="text"
-                placeholder="bijv. 14"
+                placeholder="bijv. 12"
                 value={form.houseNumber}
                 onChange={(e) => set("houseNumber", e.target.value)}
                 className="field-input"
@@ -1011,7 +1009,7 @@ function StepTransport({
               <label className="field-label">Postcode</label>
               <input
                 type="text"
-                placeholder="bijv. 5038 AB"
+                placeholder="bijv. 6045 AB"
                 value={form.postcode}
                 onChange={(e) => set("postcode", e.target.value)}
                 className="field-input"
@@ -1023,7 +1021,7 @@ function StepTransport({
             <label className="field-label">Woonplaats</label>
             <input
               type="text"
-              placeholder="bijv. Tilburg"
+              placeholder="bijv. Roermond"
               value={form.city}
               onChange={(e) => set("city", e.target.value)}
               className="field-input"

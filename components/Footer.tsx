@@ -83,6 +83,7 @@ export default function Footer() {
                   {COMPANY.website}
                 </a>
               </li>
+              <li className="pt-1 text-xs text-ink/40">KvK: {COMPANY.kvk}</li>
             </ul>
           </div>
         </div>
@@ -101,11 +102,6 @@ export default function Footer() {
             </a>
           </p>
         </div>
-
-        {/* KvK — helemaal onderaan, klein */}
-        <p className="mt-4 text-center text-xs text-ink/35">
-          KvK: {COMPANY.kvk}
-        </p>
       </div>
     </footer>
   );

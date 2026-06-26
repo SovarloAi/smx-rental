@@ -86,6 +86,24 @@ async function geocodeNominatim(code: number): Promise<Geo | null> {
   }
 }
 
+/** Normaliseert een plaatsnaam voor vergelijking (kleine letters, zonder
+ *  accenten, leestekens en spaties). */
+function normalizePlace(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z]/g, "");
+}
+
+/** Vergelijkt twee woonplaatsnamen tolerant (gelijk of de één bevat de ander). */
+function placesMatch(a: string, b: string): boolean {
+  const x = normalizePlace(a);
+  const y = normalizePlace(b);
+  if (!x || !y) return true; // niets om mee te vergelijken → niet blokkeren
+  return x === y || x.includes(y) || y.includes(x);
+}
+
 /** Haalt de rijafstand (km, enkele reis, via de weg) op via OSRM. */
 async function drivingDistanceKm(dest: { lat: number; lon: number }): Promise<number | null> {
   try {
@@ -104,7 +122,7 @@ async function drivingDistanceKm(dest: { lat: number; lon: number }): Promise<nu
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const raw = searchParams.get("postcode") ?? "";
-  const address = (searchParams.get("address") ?? "").trim();
+  const city = (searchParams.get("city") ?? "").trim();
   const code = parsePostcode(raw);
 
   const invalid: TransportResult = {
@@ -118,15 +136,11 @@ export async function GET(request: Request) {
 
   if (code === null) return NextResponse.json(invalid);
 
-  // 1) Coördinaten + plaatsnaam:
-  //    a) volledig adres (huisnummer-nauwkeurig) via PDOK,
-  //    b) anders op postcodegebied via PDOK,
-  //    c) anders Nominatim.
-  //    Lukt niets, dan klopt het adres/postcode (vermoedelijk) niet → fout.
+  // 1) Coördinaten + officiële woonplaatsnaam — altijd op basis van de POSTCODE
+  //    (de transportprijs hangt alleen van de postcode af, niet van de
+  //    ingevulde woonplaats). PDOK eerst, anders Nominatim als fallback.
   const geo: Geo | null =
-    (address ? await geocodePDOK(address) : null) ??
-    (await geocodePDOK(raw, true)) ??
-    (await geocodeNominatim(code));
+    (await geocodePDOK(raw, true)) ?? (await geocodeNominatim(code));
   if (!geo) {
     return NextResponse.json({
       ...invalid,
@@ -134,7 +148,17 @@ export async function GET(request: Request) {
     } satisfies TransportResult);
   }
 
-  // 2) Rijafstand via de weg (OSRM); fallback hemelsbreed × 1,3.
+  // 2) Validatie: de ingevulde woonplaats moet bij de postcode horen.
+  if (city && geo.place && !placesMatch(city, geo.place)) {
+    return NextResponse.json({
+      ...invalid,
+      region: geo.place,
+      error:
+        "Deze combinatie van postcode en woonplaats klopt niet. Controleer uw gegevens.",
+    } satisfies TransportResult);
+  }
+
+  // 3) Rijafstand via de weg (OSRM); fallback hemelsbreed × 1,3.
   const road = await drivingDistanceKm({ lat: geo.lat, lon: geo.lon });
   const distanceKm =
     road !== null
