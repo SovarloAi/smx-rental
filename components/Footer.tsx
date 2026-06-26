@@ -83,12 +83,11 @@ export default function Footer() {
                   {COMPANY.website}
                 </a>
               </li>
-              <li className="text-ink/45">KvK: {COMPANY.kvk}</li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-2 border-t border-ink/8 pt-7 text-sm text-ink/40 sm:flex-row">
+        <div className="mt-14 flex flex-col items-center gap-2 border-t border-ink/8 pt-7 text-sm text-ink/40 sm:flex-row sm:justify-between">
           <p>© 2025 SMX Rental. Alle rechten voorbehouden.</p>
           <p className="text-xs">
             Built by{" "}
@@ -102,6 +101,11 @@ export default function Footer() {
             </a>
           </p>
         </div>
+
+        {/* KvK — helemaal onderaan, klein */}
+        <p className="mt-4 text-center text-xs text-ink/35">
+          KvK: {COMPANY.kvk}
+        </p>
       </div>
     </footer>
   );

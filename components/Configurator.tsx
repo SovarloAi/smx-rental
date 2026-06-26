@@ -234,7 +234,10 @@ export default function Configurator() {
   const lightingCost = form.lighting ? LIGHTING_PRICE : 0;
   const sidewallsCost = form.sidewalls * SIDEWALL_PRICE;
   const shotjesbarCost = form.shotjesbar ? SHOTJESBAR_PRICE : 0;
-  const transportCost = transport?.ok ? transport.cost : 0;
+  // Bij combinatie tent + shotjesbar wordt de shotjesbar apart vervoerd
+  // (eigen auto) → dezelfde transportkosten tellen dubbel.
+  const baseTransport = transport?.ok ? transport.cost : 0;
+  const transportCost = baseTransport * (form.shotjesbar ? 2 : 1);
   const total =
     WEEKEND_RATE + lightingCost + sidewallsCost + shotjesbarCost + transportCost;
 
@@ -275,8 +278,10 @@ export default function Configurator() {
   /* ---- WhatsApp-bericht ---- */
   const message = useMemo(() => {
     const transportLine =
-      transport?.ok && !transport.free
-        ? `€${transport.cost},- (${NUM_TRIPS} ritten, ${FREE_KM_TOTAL} km vrijgesteld)`
+      transportCost > 0
+        ? form.shotjesbar
+          ? `€${transportCost},- (2× — tent + shotjesbar apart vervoerd)`
+          : `€${transportCost},- (${NUM_TRIPS} ritten, ${FREE_KM_TOTAL} km vrijgesteld)`
         : "gratis (binnen 10 km)";
 
     return [
@@ -356,6 +361,7 @@ export default function Configurator() {
                       lightingCost={lightingCost}
                       sidewallsCost={sidewallsCost}
                       shotjesbarCost={shotjesbarCost}
+                      transportCost={transportCost}
                       total={total}
                     />
                   )}
@@ -748,7 +754,7 @@ function OptionCard({
           onClick={onToggle}
           className="flex flex-1 items-center justify-between gap-3 text-left"
         >
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1">
             <h4 className="text-base font-semibold text-ink">{title}</h4>
             <span className="rounded-full bg-sand-100 px-2 py-0.5 text-[11px] font-medium text-sand-600">
               {price}
@@ -826,13 +832,13 @@ function SidewallStepper({
       <div className="flex items-center gap-3 sm:gap-4">
         <ZoomableImage image={image} onZoom={onZoom} />
         <div className="flex flex-1 items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2.5 gap-y-1">
             <h4 className="text-base font-semibold text-ink">Zijwanden</h4>
             <span className="rounded-full bg-sand-100 px-2 py-0.5 text-[11px] font-medium text-sand-600">
               €50,- per zijwand per weekend
             </span>
           </div>
-          <div className="flex flex-none items-center gap-2.5">
+          <div className="flex flex-none items-center gap-2">
             <StepperButton
               onClick={() => onChange(Math.max(0, value - 1))}
               disabled={value === 0}
@@ -958,6 +964,7 @@ function StepTransport({
   lightingCost,
   sidewallsCost,
   shotjesbarCost,
+  transportCost,
   total,
 }: StepProps & {
   transport: TransportResult | null;
@@ -965,6 +972,7 @@ function StepTransport({
   lightingCost: number;
   sidewallsCost: number;
   shotjesbarCost: number;
+  transportCost: number;
   total: number;
 }) {
   return (
@@ -980,7 +988,7 @@ function StepTransport({
             <label className="field-label">Straatnaam</label>
             <input
               type="text"
-              placeholder="bijv. Engelmanstraat"
+              placeholder="bijv. Beukenlaan"
               value={form.street}
               onChange={(e) => set("street", e.target.value)}
               className="field-input"
@@ -992,7 +1000,7 @@ function StepTransport({
               <label className="field-label">Huisnummer</label>
               <input
                 type="text"
-                placeholder="bijv. 23"
+                placeholder="bijv. 14"
                 value={form.houseNumber}
                 onChange={(e) => set("houseNumber", e.target.value)}
                 className="field-input"
@@ -1003,7 +1011,7 @@ function StepTransport({
               <label className="field-label">Postcode</label>
               <input
                 type="text"
-                placeholder="bijv. 6086 AB"
+                placeholder="bijv. 5038 AB"
                 value={form.postcode}
                 onChange={(e) => set("postcode", e.target.value)}
                 className="field-input"
@@ -1015,7 +1023,7 @@ function StepTransport({
             <label className="field-label">Woonplaats</label>
             <input
               type="text"
-              placeholder="bijv. Neer"
+              placeholder="bijv. Tilburg"
               value={form.city}
               onChange={(e) => set("city", e.target.value)}
               className="field-input"
@@ -1091,18 +1099,28 @@ function StepTransport({
           <Row label="Shotjesbar" muted={shotjesbarCost === 0}>
             {shotjesbarCost > 0 ? formatEuro(shotjesbarCost) : "—"}
           </Row>
-          <Row label="Transport" muted={!transport?.ok}>
+          <Row
+            label={`Transport${form.shotjesbar && transportCost > 0 ? " (2×)" : ""}`}
+            muted={!transport?.ok}
+          >
             {transport?.ok
-              ? transport.free
-                ? "Gratis"
-                : formatEuro(transport.cost)
+              ? transportCost > 0
+                ? formatEuro(transportCost)
+                : "Gratis"
               : "—"}
           </Row>
         </dl>
-        {transport?.ok && !transport.free && (
+        {transport?.ok && transportCost > 0 && (
           <p className="mt-2 text-xs text-ink/45">
             Transport: {NUM_TRIPS} ritten van {transport.distanceKm} km −{" "}
             {FREE_KM_TOTAL} km vrijgesteld.
+            {form.shotjesbar && (
+              <>
+                {" "}
+                Telt dubbel: de shotjesbar wordt met een eigen auto apart
+                vervoerd.
+              </>
+            )}
           </p>
         )}
         <div className="mt-5 flex items-baseline justify-between border-t border-ink/10 pt-5">

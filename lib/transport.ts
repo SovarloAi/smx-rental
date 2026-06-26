@@ -104,9 +104,14 @@ export type TransportResult = {
   error?: string;
 };
 
-/** Haalt het 4-cijferige getal uit een postcode-invoer (bv. "6086 AB" → 6086). */
+/**
+ * Haalt het 4-cijferige getal uit een postcode-invoer. Accepteert zowel
+ * "1234 AB" als "1234AB" (met/zonder spatie) en losse "1234".
+ */
 export function parsePostcode(input: string): number | null {
-  const match = input.trim().match(/\b(\d{4})\b/);
+  // 4 cijfers, niet vóór-/náchterafgegrensd door andere cijfers (zo wordt
+  // bv. "12345" afgekeurd, maar "1234AB" en "1234 AB" herkend).
+  const match = input.trim().match(/(?:^|\D)(\d{4})(?:\D|$)/);
   if (!match) return null;
   const num = parseInt(match[1], 10);
   if (num < 1000 || num > 9999) return null;

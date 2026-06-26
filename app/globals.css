@@ -25,9 +25,21 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Account for fixed navbar when jumping to anchors */
+/* Ankers landen netjes onder de vaste navbar (offset = navbarhoogte per
+   breakpoint), zodat je duidelijk in de juiste sectie belandt zonder dat de
+   vorige sectie nog zichtbaar is. */
 section[id] {
-  scroll-margin-top: 8.5rem;
+  scroll-margin-top: 5rem; /* mobiel: navbar h-20 (80px) */
+}
+@media (min-width: 640px) {
+  section[id] {
+    scroll-margin-top: 7rem; /* sm: navbar h-28 (112px) */
+  }
+}
+@media (min-width: 1024px) {
+  section[id] {
+    scroll-margin-top: 8rem; /* lg: navbar h-32 (128px) */
+  }
 }
 
 body {
