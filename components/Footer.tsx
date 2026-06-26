@@ -20,7 +20,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <div>
+          <div className="mt-6 lg:mt-10">
             <h4 className="text-xs font-semibold uppercase tracking-[0.15em] text-ink/40">
               Navigatie
             </h4>
@@ -32,7 +32,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#configurator" className="transition-colors hover:text-ink">
-                  Bereken prijs
+                  Bereken & reserveer
                 </a>
               </li>
               <li>
@@ -53,7 +53,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="mt-6 lg:mt-10">
             <h4 className="text-xs font-semibold uppercase tracking-[0.15em] text-ink/40">
               Contact
             </h4>
@@ -83,12 +83,14 @@ export default function Footer() {
                   {COMPANY.website}
                 </a>
               </li>
-              <li className="pt-1 text-xs text-ink/40">KvK: {COMPANY.kvk}</li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center gap-2 border-t border-ink/8 pt-7 text-sm text-ink/40 sm:flex-row sm:justify-between">
+        {/* KvK — linksonder, net boven de onderste lijn */}
+        <p className="mt-12 text-xs text-ink/40">KvK: {COMPANY.kvk}</p>
+
+        <div className="mt-3 flex flex-col items-center gap-2 border-t border-ink/8 pt-7 text-sm text-ink/40 sm:flex-row sm:justify-between">
           <p>© 2025 SMX Rental. Alle rechten voorbehouden.</p>
           <p className="text-xs">
             Built by{" "}

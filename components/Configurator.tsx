@@ -86,9 +86,11 @@ const DOUBT_VERDICT: Verdict = {
   whatsapp: true,
 };
 
-// Reeds bezette weekenden — vul hier de vrijdag-datums in (formaat "YYYY-MM-DD").
+// Reeds bezette (volgeboekte) weekenden — vrijdag-datum van het weekend
+// (formaat "YYYY-MM-DD"). Deze worden met een diagonale streep gemarkeerd.
 const UNAVAILABLE_WEEKENDS = new Set<string>([
-  // "2026-07-17",
+  "2026-07-03", // weekend vr 3 – zo 5 juli
+  "2026-08-28", // weekend vr 28 – zo 30 augustus
 ]);
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -239,8 +241,8 @@ export default function Configurator() {
   const total =
     WEEKEND_RATE + lightingCost + sidewallsCost + shotjesbarCost + transportCost;
 
-  // Alle weekenden t/m eind september 2026.
-  const fridays = useMemo(() => weekendFridaysUntil(new Date(2026, 8, 30)), []);
+  // Alle (toekomstige) weekenden t/m eind oktober 2026.
+  const fridays = useMemo(() => weekendFridaysUntil(new Date(2026, 9, 31)), []);
 
   /* ---- per-stap validatie ---- */
   const canContinue = (() => {
@@ -626,29 +628,69 @@ function StepDate({
                 type="button"
                 disabled={unavailable}
                 onClick={() => set("weekend", iso)}
-                className={`rounded-xl border px-4 py-3.5 text-left transition-all ${
+                aria-label={
                   unavailable
-                    ? "cursor-not-allowed border-ink/8 bg-sand-50/50 opacity-50"
+                    ? `${fmtDay(fri, { day: "numeric", month: "long" })} – ${fmtDay(sun, { day: "numeric", month: "long" })} (volgeboekt)`
+                    : undefined
+                }
+                className={`relative overflow-hidden rounded-xl border px-4 py-3.5 text-left transition-all ${
+                  unavailable
+                    ? "cursor-not-allowed border-ink/10 bg-sand-50/60 text-ink/35"
                     : active
                       ? "border-ink bg-ink text-white shadow-sm"
                       : "border-ink/12 bg-white hover:border-ink/30 hover:bg-sand-50"
                 }`}
               >
+                {!unavailable && (
+                  <span
+                    className={`block text-xs uppercase tracking-wide ${
+                      active ? "text-white/60" : "text-ink/40"
+                    }`}
+                  >
+                    Weekend
+                  </span>
+                )}
                 <span
-                  className={`block text-xs uppercase tracking-wide ${
-                    active ? "text-white/60" : "text-ink/40"
+                  className={`block text-sm font-semibold ${
+                    unavailable ? "" : "mt-0.5"
                   }`}
                 >
-                  {unavailable ? "Niet beschikbaar" : "Weekend"}
-                </span>
-                <span className="mt-0.5 block text-sm font-semibold">
                   {fmtDay(fri, { day: "numeric", month: "short" })} –{" "}
                   {fmtDay(sun, { day: "numeric", month: "short" })}
                 </span>
+                {/* Volgeboekt: alleen een diagonale streep, geen verdere info */}
+                {unavailable && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(to top right, transparent calc(50% - 0.75px), rgba(10,10,10,0.28) calc(50% - 0.75px), rgba(10,10,10,0.28) calc(50% + 0.75px), transparent calc(50% + 0.75px))",
+                    }}
+                  />
+                )}
               </button>
             );
           })}
         </div>
+      </div>
+
+      {/* Andere datum aanvragen */}
+      <div className="mt-5 rounded-2xl border border-dashed border-ink/20 bg-sand-50/60 p-4">
+        <a
+          href={whatsappLink(
+            "Hoi SMX Rental! Mijn gewenste weekend of datum staat niet in de kalender. Kunnen jullie de mogelijkheden doorgeven? (Eventueel ook interesse in doordeweekse verhuur of een langere periode.)"
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm font-semibold text-ink underline decoration-sand-400 decoration-2 underline-offset-4 transition-colors hover:text-sand-700"
+        >
+          Staat uw weekend of datum er niet bij? Neem dan contact op.
+        </a>
+        <p className="mt-1.5 text-xs leading-relaxed text-ink/55">
+          De tent is ook doordeweeks of voor langere periodes te huren — we
+          denken graag met u mee.
+        </p>
       </div>
 
       <Notice tone="info" title="Beschikbaarheid">
