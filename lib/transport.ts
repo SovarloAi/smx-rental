@@ -136,10 +136,11 @@ export function transportFromDistance(
       error: "Helaas is dit niet mogelijk.",
     };
   }
-  // 4 ritten (op- + afbouw, heen + terug) minus 60 km totale vrijstelling.
+  // 4 ritten (op- + afbouw, heen + terug) minus 40 km totale vrijstelling.
   const totalDriven = distanceKm * NUM_TRIPS;
   const billableKm = Math.max(0, totalDriven - FREE_KM_TOTAL);
-  const cost = Math.round(billableKm * PRICE_PER_KM);
+  // Altijd naar boven afronden op hele euro's.
+  const cost = Math.ceil(billableKm * PRICE_PER_KM);
   const free = cost === 0;
   return { ok: true, distanceKm, cost, free, region };
 }

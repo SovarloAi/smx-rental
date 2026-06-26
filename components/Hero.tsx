@@ -9,7 +9,7 @@ export default function Hero() {
   return (
     <section
       id="top"
-      className="hero-gradient relative flex min-h-screen items-center overflow-hidden pt-24 sm:pt-28 lg:pt-32"
+      className="hero-gradient relative flex min-h-screen items-center overflow-hidden pt-20 sm:pt-28 lg:pt-32"
     >
       {/* subtiele zandcirkel rechtsboven */}
       <div

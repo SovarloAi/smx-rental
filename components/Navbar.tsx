@@ -37,7 +37,7 @@ export default function Navbar() {
         scrolled ? "shadow-lg shadow-ink/20" : "shadow-md shadow-ink/10"
       }`}
     >
-      <nav className="container-x flex h-24 items-center justify-between sm:h-28 lg:h-32">
+      <nav className="container-x flex h-20 items-center justify-between sm:h-28 lg:h-32">
         <a href="#top" className="group flex items-center" aria-label="SMX Rental — naar boven">
           <Image
             src="/smx-logo-transparant.png"
@@ -45,7 +45,7 @@ export default function Navbar() {
             width={311}
             height={308}
             priority
-            className="h-16 w-auto transition-transform duration-300 group-hover:scale-[1.03] sm:h-24 lg:h-28"
+            className="h-14 w-auto transition-transform duration-300 group-hover:scale-[1.03] sm:h-24 lg:h-28"
           />
         </a>
 

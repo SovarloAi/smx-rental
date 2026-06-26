@@ -20,13 +20,16 @@ function timeoutSignal(ms: number): AbortSignal {
 }
 
 /**
- * Geocodeert een NL-postcode via de PDOK Locatieserver (officiële NL-geocoder).
- * Geeft nauwkeurige coördinaten + de echte woonplaatsnaam terug.
+ * Geocodeert via de PDOK Locatieserver (officiële NL-geocoder).
+ * Met een volledig adres levert dit huisnummer-nauwkeurige coördinaten;
+ * met `restrictPostcode` wordt op postcodegebied gezocht. Geeft ook de echte
+ * woonplaatsnaam terug.
  */
-async function geocodePDOK(postcode: string): Promise<Geo | null> {
+async function geocodePDOK(query: string, restrictPostcode = false): Promise<Geo | null> {
   try {
-    const q = encodeURIComponent(postcode.trim());
-    const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${q}&fq=type:postcode&rows=1&fl=woonplaatsnaam,gemeentenaam,centroide_ll`;
+    const q = encodeURIComponent(query.trim());
+    const fq = restrictPostcode ? "&fq=type:postcode" : "";
+    const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${q}${fq}&rows=1&fl=woonplaatsnaam,gemeentenaam,centroide_ll`;
     const res = await fetch(url, { signal: timeoutSignal(6000) });
     if (!res.ok) return null;
     const data = (await res.json()) as {
@@ -101,6 +104,7 @@ async function drivingDistanceKm(dest: { lat: number; lon: number }): Promise<nu
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const raw = searchParams.get("postcode") ?? "";
+  const address = (searchParams.get("address") ?? "").trim();
   const code = parsePostcode(raw);
 
   const invalid: TransportResult = {
@@ -114,10 +118,15 @@ export async function GET(request: Request) {
 
   if (code === null) return NextResponse.json(invalid);
 
-  // 1) Echte coördinaten + plaatsnaam via PDOK, anders Nominatim.
-  //    Lukt geen van beide, dan bestaat de postcode (vermoedelijk) niet:
-  //    geef een duidelijke fout i.p.v. terug te vallen op een grove regio.
-  const geo: Geo | null = (await geocodePDOK(raw)) ?? (await geocodeNominatim(code));
+  // 1) Coördinaten + plaatsnaam:
+  //    a) volledig adres (huisnummer-nauwkeurig) via PDOK,
+  //    b) anders op postcodegebied via PDOK,
+  //    c) anders Nominatim.
+  //    Lukt niets, dan klopt het adres/postcode (vermoedelijk) niet → fout.
+  const geo: Geo | null =
+    (address ? await geocodePDOK(address) : null) ??
+    (await geocodePDOK(raw, true)) ??
+    (await geocodeNominatim(code));
   if (!geo) {
     return NextResponse.json({
       ...invalid,

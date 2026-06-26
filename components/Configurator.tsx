@@ -43,7 +43,10 @@ type FormState = {
   lighting: boolean;
   sidewalls: number; // aantal zijwanden 0-2
   shotjesbar: boolean;
+  street: string;
+  houseNumber: string;
   postcode: string;
+  city: string;
   name: string;
   phone: string;
   email: string;
@@ -58,7 +61,10 @@ const INITIAL: FormState = {
   lighting: false,
   sidewalls: 0,
   shotjesbar: false,
+  street: "",
+  houseNumber: "",
   postcode: "",
+  city: "",
   name: "",
   phone: "",
   email: "",
@@ -199,11 +205,18 @@ export default function Configurator() {
       setTransportLoading(false);
       return;
     }
+    // Volledig adres voor nauwkeurige (huisnummer-)geocoding.
+    const address = [form.street, form.houseNumber, pc, form.city]
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(" ");
     let cancelled = false;
     setTransportLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/transport?postcode=${encodeURIComponent(pc)}`);
+        const params = new URLSearchParams({ postcode: pc });
+        if (address) params.set("address", address);
+        const res = await fetch(`/api/transport?${params.toString()}`);
         const data = (await res.json()) as TransportResult;
         if (!cancelled) setTransport(data);
       } catch {
@@ -211,12 +224,12 @@ export default function Configurator() {
       } finally {
         if (!cancelled) setTransportLoading(false);
       }
-    }, 500);
+    }, 600);
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [form.postcode]);
+  }, [form.street, form.houseNumber, form.postcode, form.city]);
 
   const lightingCost = form.lighting ? LIGHTING_PRICE : 0;
   const sidewallsCost = form.sidewalls * SIDEWALL_PRICE;
@@ -238,7 +251,13 @@ export default function Configurator() {
       case 3:
         return true; // opties zijn optioneel
       case 4:
-        return transport?.ok === true && !transportLoading;
+        return (
+          form.street.trim() !== "" &&
+          form.houseNumber.trim() !== "" &&
+          form.city.trim() !== "" &&
+          transport?.ok === true &&
+          !transportLoading
+        );
       case 5:
         return (
           form.name.trim() !== "" &&
@@ -267,7 +286,7 @@ export default function Configurator() {
       `📞 Tel: ${form.phone}`,
       `📧 E-mail: ${form.email}`,
       `📅 Weekend: ${weekendLabel(form.weekend)}`,
-      `📍 Postcode: ${form.postcode}`,
+      `📍 Adres: ${form.street} ${form.houseNumber}, ${form.postcode} ${form.city}`,
       "",
       "✅ Locatiecheck:",
       `- Ruimte: ${form.length} x ${form.width} meter`,
@@ -718,27 +737,28 @@ function OptionCard({
 }) {
   return (
     <div
-      className={`flex items-stretch gap-3 overflow-hidden rounded-2xl border p-3 transition-all sm:gap-4 ${
+      className={`rounded-2xl border p-3 transition-all ${
         active ? "border-sand-400 bg-sand-50 shadow-sm" : "border-ink/10 bg-white"
       }`}
     >
-      <ZoomableImage image={{ src: image, alt }} onZoom={onZoom} />
-
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex flex-1 items-start justify-between gap-3 py-1 pr-2 text-left"
-      >
-        <div>
-          <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <ZoomableImage image={{ src: image, alt }} onZoom={onZoom} />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex flex-1 items-center justify-between gap-3 text-left"
+        >
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <h4 className="text-base font-semibold text-ink">{title}</h4>
             <span className="rounded-full bg-sand-100 px-2 py-0.5 text-[11px] font-medium text-sand-600">
               {price}
             </span>
           </div>
-          <p className="mt-1.5 text-sm leading-relaxed text-ink/55">{body}</p>
-        </div>
-        {children}
+          {children}
+        </button>
+      </div>
+      <button type="button" onClick={onToggle} className="mt-3 block w-full text-left">
+        <p className="text-sm leading-relaxed text-ink/60">{body}</p>
       </button>
     </div>
   );
@@ -799,46 +819,44 @@ function SidewallStepper({
   };
   return (
     <div
-      className={`flex items-stretch gap-3 overflow-hidden rounded-2xl border p-3 transition-all sm:gap-4 ${
+      className={`rounded-2xl border p-3 transition-all ${
         value > 0 ? "border-sand-400 bg-sand-50 shadow-sm" : "border-ink/10 bg-white"
       }`}
     >
-      <ZoomableImage image={image} onZoom={onZoom} />
-
-      <div className="flex flex-1 flex-col gap-3 py-1 pr-1 sm:flex-row sm:items-center sm:justify-between sm:pr-2">
-        <div>
-          <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <ZoomableImage image={image} onZoom={onZoom} />
+        <div className="flex flex-1 items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <h4 className="text-base font-semibold text-ink">Zijwanden</h4>
             <span className="rounded-full bg-sand-100 px-2 py-0.5 text-[11px] font-medium text-sand-600">
               €50,- per zijwand per weekend
             </span>
           </div>
-          <p className="mt-1.5 text-sm leading-relaxed text-ink/55">
-            Bescherming tegen wind en regen. Elke zijwand is 10 meter — er zijn
-            er maximaal 2 beschikbaar.
-          </p>
-        </div>
-
-        <div className="flex flex-none items-center gap-3 self-start sm:self-auto">
-          <StepperButton
-            onClick={() => onChange(Math.max(0, value - 1))}
-            disabled={value === 0}
-            label="Minder zijwanden"
-          >
-            −
-          </StepperButton>
-          <span className="w-5 text-center text-base font-semibold tabular-nums text-ink">
-            {value}
-          </span>
-          <StepperButton
-            onClick={() => onChange(Math.min(MAX_SIDEWALLS, value + 1))}
-            disabled={value === MAX_SIDEWALLS}
-            label="Meer zijwanden"
-          >
-            +
-          </StepperButton>
+          <div className="flex flex-none items-center gap-2.5">
+            <StepperButton
+              onClick={() => onChange(Math.max(0, value - 1))}
+              disabled={value === 0}
+              label="Minder zijwanden"
+            >
+              −
+            </StepperButton>
+            <span className="w-5 text-center text-base font-semibold tabular-nums text-ink">
+              {value}
+            </span>
+            <StepperButton
+              onClick={() => onChange(Math.min(MAX_SIDEWALLS, value + 1))}
+              disabled={value === MAX_SIDEWALLS}
+              label="Meer zijwanden"
+            >
+              +
+            </StepperButton>
+          </div>
         </div>
       </div>
+      <p className="mt-3 text-sm leading-relaxed text-ink/60">
+        Bescherming tegen wind en regen. Elke zijwand is 10 meter — er zijn er
+        maximaal 2 beschikbaar.
+      </p>
     </div>
   );
 }
@@ -902,7 +920,7 @@ function Lightbox({
             type="button"
             onClick={onClose}
             aria-label="Sluiten"
-            className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+            className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition-colors hover:bg-white/30 sm:right-6 sm:top-6"
           >
             <X className="h-5 w-5" />
           </button>
@@ -953,19 +971,58 @@ function StepTransport({
     <div>
       <StepHeading
         title="Transportkosten"
-        sub="Vul uw postcode in en we berekenen de transportkosten op basis van de rijafstand vanaf Neer."
+        sub="Vul het adres van de locatie in. We berekenen de transportkosten op basis van de rijafstand vanaf Neer."
       />
 
       <div>
-        <label className="field-label">Postcode bezorgadres</label>
-        <input
-          type="text"
-          placeholder="bijv. 6086 AB"
-          value={form.postcode}
-          onChange={(e) => set("postcode", e.target.value)}
-          className="field-input max-w-xs"
-          autoComplete="postal-code"
-        />
+        <div className="space-y-3">
+          <div>
+            <label className="field-label">Straatnaam</label>
+            <input
+              type="text"
+              placeholder="bijv. Engelmanstraat"
+              value={form.street}
+              onChange={(e) => set("street", e.target.value)}
+              className="field-input"
+              autoComplete="address-line1"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">Huisnummer</label>
+              <input
+                type="text"
+                placeholder="bijv. 23"
+                value={form.houseNumber}
+                onChange={(e) => set("houseNumber", e.target.value)}
+                className="field-input"
+                autoComplete="address-line2"
+              />
+            </div>
+            <div>
+              <label className="field-label">Postcode</label>
+              <input
+                type="text"
+                placeholder="bijv. 6086 AB"
+                value={form.postcode}
+                onChange={(e) => set("postcode", e.target.value)}
+                className="field-input"
+                autoComplete="postal-code"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="field-label">Woonplaats</label>
+            <input
+              type="text"
+              placeholder="bijv. Neer"
+              value={form.city}
+              onChange={(e) => set("city", e.target.value)}
+              className="field-input"
+              autoComplete="address-level2"
+            />
+          </div>
+        </div>
 
         <p className="mt-3 text-[13px] leading-relaxed text-ink/55">
           De eerste 10 km van elke rit (op- en afbouw, heen en terug) zijn
