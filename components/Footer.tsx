@@ -5,8 +5,8 @@ export default function Footer() {
   return (
     <footer className="site-texture relative overflow-hidden border-t border-ink/10 bg-sand-100">
       <div className="container-x py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-2 gap-8 sm:gap-10 lg:grid-cols-4">
+          <div className="col-span-2">
             <Image
               src="/smx-logo-transparant.png"
               alt="SMX Rental"

@@ -71,6 +71,14 @@ body {
     linear-gradient(to bottom, #f5f1e8 0%, #fbf9f5 50%, #ffffff 100%);
 }
 
+/* Marquee pauzeert alleen op apparaten met een echte hover (muis), niet op
+   touch — anders blijft de "hover" na een tik hangen en stopt de animatie. */
+@media (hover: hover) {
+  .group:hover .marquee-hover-pause {
+    animation-play-state: paused;
+  }
+}
+
 /* Dunne, subtiele scrollbar voor de lange review-kaart */
 .reviews-scroll {
   scrollbar-width: thin;

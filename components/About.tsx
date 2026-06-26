@@ -80,12 +80,12 @@ export default function About() {
             </Reveal>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
             {USPS.map((usp, i) => {
               const Icon = usp.icon;
               return (
                 <Reveal key={usp.title} delay={0.1 + i * 0.08}>
-                  <div className="group h-full rounded-2xl border border-ink/8 bg-white p-7 shadow-sm shadow-sand-600/5 transition-all duration-300 hover:-translate-y-1 hover:border-sand-300 hover:shadow-xl hover:shadow-sand-600/10">
+                  <div className="group h-full rounded-2xl border border-ink/8 bg-white p-5 shadow-sm shadow-sand-600/5 transition-all duration-300 hover:-translate-y-1 hover:border-sand-300 hover:shadow-xl hover:shadow-sand-600/10 sm:p-7">
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sand-100 text-sand-600 ring-1 ring-ink/5 transition-colors group-hover:bg-ink group-hover:text-white">
                       <Icon className="h-5 w-5" strokeWidth={1.5} />
                     </div>
@@ -102,16 +102,20 @@ export default function About() {
           </div>
         </div>
 
-        {/* Fotogalerij */}
-        <div className="mt-20 grid gap-4 sm:grid-cols-3">
+        {/* Fotogalerij — horizontaal scrollend op mobiel, grid vanaf sm */}
+        <div className="reviews-scroll -mx-6 mt-16 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 sm:mx-0 sm:mt-20 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
           {GALLERY.map((img, i) => (
-            <Reveal key={img.src} delay={i * 0.1}>
+            <Reveal
+              key={img.src}
+              delay={i * 0.1}
+              className="w-[78%] flex-none snap-start sm:w-auto"
+            >
               <div className="group relative aspect-[3/4] overflow-hidden rounded-2xl border border-ink/20 shadow-md shadow-sand-600/10 ring-1 ring-black/5 transition-all duration-300 hover:shadow-xl hover:shadow-sand-600/15">
                 <Image
                   src={img.src}
                   alt={img.alt}
                   fill
-                  sizes="(min-width: 640px) 33vw, 100vw"
+                  sizes="(min-width: 640px) 33vw, 80vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>

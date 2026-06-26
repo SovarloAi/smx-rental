@@ -286,7 +286,7 @@ export default function Configurator() {
   }, [form, transport, lightingCost, sidewallsCost, shotjesbarCost, total]);
 
   return (
-    <section id="configurator" className="site-texture relative overflow-hidden bg-sand-50/50 py-28 sm:py-36">
+    <section id="configurator" className="site-texture relative overflow-hidden bg-sand-50/50 py-16 sm:py-28 lg:py-36">
       <div className="container-x">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-sand-600">
@@ -301,11 +301,11 @@ export default function Configurator() {
           </p>
         </div>
 
-        <div className="mx-auto mt-14 max-w-3xl">
+        <div className="mx-auto mt-10 max-w-3xl sm:mt-14">
           <div className="overflow-hidden rounded-[1.75rem] border border-ink/8 bg-white shadow-xl shadow-sand-600/5">
             <ProgressBar step={step} />
 
-            <div className="px-6 py-10 sm:px-12 sm:py-12">
+            <div className="px-5 py-8 sm:px-12 sm:py-12">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={step}
@@ -343,7 +343,7 @@ export default function Configurator() {
             </div>
 
             {/* Navigatie */}
-            <div className="flex items-center justify-between gap-4 border-t border-ink/8 bg-sand-50/40 px-6 py-5 sm:px-12">
+            <div className="flex items-center justify-between gap-4 border-t border-ink/8 bg-sand-50/40 px-5 py-4 sm:px-12 sm:py-5">
               <button
                 onClick={back}
                 disabled={step === 1}
@@ -384,7 +384,7 @@ const STEP_LABELS = ["Locatie", "Datum", "Opties", "Transport", "Gegevens"];
 function ProgressBar({ step }: { step: number }) {
   const pct = ((step - 1) / (TOTAL_STEPS - 1)) * 100;
   return (
-    <div className="border-b border-ink/8 px-6 pb-6 pt-7 sm:px-12">
+    <div className="border-b border-ink/8 px-5 pb-5 pt-6 sm:px-12 sm:pb-6 sm:pt-7">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm font-medium text-ink">
           Stap {step} <span className="text-ink/40">/ {TOTAL_STEPS}</span>

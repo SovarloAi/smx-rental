@@ -66,8 +66,7 @@ export default function Navbar() {
             className="btn-whatsapp"
           >
             <WhatsAppIcon className="h-4 w-4" />
-            <span className="hidden sm:inline">WhatsApp</span>
-            <span className="sm:hidden">Chat</span>
+            <span>WhatsApp</span>
           </a>
         </div>
       </nav>

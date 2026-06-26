@@ -17,7 +17,7 @@ export default function Hero() {
         className="pointer-events-none absolute -right-40 top-10 h-[36rem] w-[36rem] rounded-full bg-sand-100/60 blur-3xl"
       />
 
-      <div className="container-x relative z-10 grid w-full items-center gap-16 py-20 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="container-x relative z-10 grid w-full items-center gap-8 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:py-20 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -99,9 +99,9 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.96, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.9, ease, delay: 0.25 }}
-          className="relative hidden lg:block"
+          className="relative mt-4 block sm:mt-6 lg:mt-0"
         >
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] border border-ink/20 shadow-2xl shadow-sand-600/10 ring-1 ring-black/5">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] border border-ink/20 shadow-2xl shadow-sand-600/10 ring-1 ring-black/5 sm:rounded-[2rem] lg:aspect-[4/5]">
             <Image
               src="/images/tent-overzicht.jpg"
               alt="Stretchtent van SMX Rental opgesteld op een grasveld"
