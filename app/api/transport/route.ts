@@ -7,10 +7,17 @@ import {
   type TransportResult,
 } from "@/lib/transport";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 type Geo = { lat: number; lon: number; place: string | null };
+
+/** Draagbare timeout (Edge-/Cloudflare-veilig, geen AbortSignal.timeout nodig). */
+function timeoutSignal(ms: number): AbortSignal {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), ms);
+  return controller.signal;
+}
 
 /**
  * Geocodeert een NL-postcode via de PDOK Locatieserver (officiële NL-geocoder).
@@ -20,7 +27,7 @@ async function geocodePDOK(postcode: string): Promise<Geo | null> {
   try {
     const q = encodeURIComponent(postcode.trim());
     const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${q}&fq=type:postcode&rows=1&fl=woonplaatsnaam,gemeentenaam,centroide_ll`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const res = await fetch(url, { signal: timeoutSignal(6000) });
     if (!res.ok) return null;
     const data = (await res.json()) as {
       response?: {
@@ -55,7 +62,7 @@ async function geocodeNominatim(code: number): Promise<Geo | null> {
         "User-Agent": "SMX-Rental-Website/1.0 (smxrental@gmail.com)",
         "Accept-Language": "nl",
       },
-      signal: AbortSignal.timeout(6000),
+      signal: timeoutSignal(6000),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as Array<{
@@ -80,7 +87,7 @@ async function geocodeNominatim(code: number): Promise<Geo | null> {
 async function drivingDistanceKm(dest: { lat: number; lon: number }): Promise<number | null> {
   try {
     const url = `https://router.project-osrm.org/route/v1/driving/${NEER.lon},${NEER.lat};${dest.lon},${dest.lat}?overview=false`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const res = await fetch(url, { signal: timeoutSignal(6000) });
     if (!res.ok) return null;
     const data = (await res.json()) as { routes?: Array<{ distance: number }> };
     const meters = data.routes?.[0]?.distance;

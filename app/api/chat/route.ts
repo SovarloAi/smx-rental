@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 const MODEL = "claude-sonnet-4-6";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 // Strikte system prompt: alleen oppervlakkige basisinfo, altijd doorverwijzen.
 const SYSTEM_PROMPT = `Je bent de chatassistent van SMX Rental, een stretchtent-verhuurbedrijf in Neer, Limburg.
@@ -37,6 +37,13 @@ const CONTACT_SUFFIX =
   " Voor specifieke vragen kunt u ons via de knoppen hieronder bereiken via WhatsApp, telefoon of e-mail.";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+/** Draagbare timeout (Edge-/Cloudflare-veilig). */
+function timeoutSignal(ms: number): AbortSignal {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), ms);
+  return controller.signal;
+}
 
 /**
  * Lichte, regel-gebaseerde beantwoorder voor veelgestelde vragen. Wordt gebruikt
@@ -138,6 +145,34 @@ function ruleBasedReply(text: string): string | null {
   return null;
 }
 
+/** Roept de Anthropic Messages API rechtstreeks via fetch aan (Edge-compatibel). */
+async function askClaude(apiKey: string, messages: ChatMessage[]): Promise<string> {
+  const res = await fetch(ANTHROPIC_URL, {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 400,
+      system: SYSTEM_PROMPT,
+      messages,
+    }),
+    signal: timeoutSignal(20000),
+  });
+  if (!res.ok) throw new Error(`Anthropic API ${res.status}`);
+  const data = (await res.json()) as {
+    content?: Array<{ type: string; text?: string }>;
+  };
+  return (data.content ?? [])
+    .filter((b) => b.type === "text")
+    .map((b) => b.text ?? "")
+    .join("")
+    .trim();
+}
+
 export async function POST(request: Request) {
   let body: { messages?: ChatMessage[] };
   try {
@@ -164,27 +199,15 @@ export async function POST(request: Request) {
   }
 
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
+  const apiKey = process.env.ANTHROPIC_API_KEY;
 
   // Geen API-sleutel → meteen de regel-gebaseerde beantwoorder.
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!apiKey) {
     return NextResponse.json({ reply: ruleBasedReply(lastUser) ?? FALLBACK });
   }
 
   try {
-    const client = new Anthropic();
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 400,
-      system: SYSTEM_PROMPT,
-      messages,
-    });
-
-    const reply = response.content
-      .filter((block): block is Anthropic.TextBlock => block.type === "text")
-      .map((block) => block.text)
-      .join("")
-      .trim();
-
+    const reply = await askClaude(apiKey, messages);
     return NextResponse.json({ reply: reply || ruleBasedReply(lastUser) || FALLBACK });
   } catch {
     // AI tijdelijk onbereikbaar → val terug op de regel-gebaseerde beantwoorder.
