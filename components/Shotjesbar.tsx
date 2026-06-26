@@ -24,7 +24,7 @@ export default function Shotjesbar() {
     "Hoi SMX Rental! Ik heb interesse in de Shotjesbar (€380,- per weekend). Kunnen jullie me meer vertellen?";
 
   return (
-    <section id="shotjesbar" className="relative bg-ink py-28 text-white sm:py-36">
+    <section id="shotjesbar" className="relative bg-ink py-20 text-white sm:py-28 lg:py-36">
       <WaveDivider position="top" />
       <WaveDivider position="bottom" />
 

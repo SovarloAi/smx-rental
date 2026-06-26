@@ -160,7 +160,7 @@ export default function Reviews() {
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent sm:w-32" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent sm:w-32" />
 
-        <div className="marquee-hover-pause flex w-max animate-marquee motion-reduce:[animation:none]">
+        <div className="marquee-hover-pause flex w-max animate-marquee">
           {loop.map((review, i) => (
             <div key={i} className="mr-5 sm:mr-6" aria-hidden={i >= REVIEWS.length}>
               <ReviewCard review={review} />

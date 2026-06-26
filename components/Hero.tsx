@@ -54,14 +54,17 @@ export default function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease, delay: 0.3 }}
-            className="mt-10 flex flex-wrap items-center gap-4"
+            className="mt-8 flex items-stretch gap-3 sm:mt-10 sm:gap-4"
           >
-            <a href="#configurator" className="btn-primary">
+            <a
+              href="#configurator"
+              className="btn-primary flex-1 justify-center px-4 text-center sm:flex-none sm:px-7"
+            >
               Bereken uw prijs
               <svg
                 viewBox="0 0 16 16"
                 fill="none"
-                className="h-4 w-4"
+                className="hidden h-4 w-4 sm:block"
                 aria-hidden
               >
                 <path
@@ -73,24 +76,12 @@ export default function Hero() {
                 />
               </svg>
             </a>
-            <a href="#over-ons" className="btn-secondary">
+            <a
+              href="#over-ons"
+              className="btn-secondary flex-1 justify-center px-4 text-center sm:flex-none sm:px-7"
+            >
               Meer over SMX Rental
             </a>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="mt-12 flex items-center gap-7 text-sm text-ink/50"
-          >
-            <span className="flex items-center gap-2">
-              <CheckDot /> Inclusief op- en afbouw
-            </span>
-            <span className="hidden h-4 w-px bg-ink/10 sm:block" />
-            <span className="hidden items-center gap-2 sm:flex">
-              <CheckDot /> Vaste prijzen
-            </span>
           </motion.div>
         </div>
 
@@ -110,19 +101,26 @@ export default function Hero() {
               sizes="(min-width: 1024px) 45vw, 100vw"
               className="object-cover"
             />
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/45 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
 
-            <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/50 bg-white/85 p-5 backdrop-blur-sm">
-              <p className="text-xs font-medium uppercase tracking-widest text-sand-600">
+            <div className="absolute bottom-3 left-3 rounded-xl border border-white/50 bg-white/90 px-3.5 py-2.5 backdrop-blur-sm sm:bottom-5 sm:left-5">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-sand-600 sm:text-xs">
                 Weekendtarief
               </p>
-              <p className="mt-1 font-serif text-4xl font-light tracking-tight text-ink">
+              <p className="font-serif text-2xl font-light leading-tight tracking-tight text-ink sm:text-3xl">
                 €550,-
               </p>
-              <p className="mt-1 text-sm text-ink/55">
-                inclusief op- en afbouw
-              </p>
             </div>
+          </div>
+
+          {/* Vertrouwenssignalen onder de foto */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink/55 lg:justify-start">
+            <span className="flex items-center gap-2">
+              <CheckDot /> Inclusief op- en afbouw
+            </span>
+            <span className="flex items-center gap-2">
+              <CheckDot /> Vaste prijzen
+            </span>
           </div>
         </motion.div>
       </div>

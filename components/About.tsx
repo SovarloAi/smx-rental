@@ -80,12 +80,12 @@ export default function About() {
             </Reveal>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             {USPS.map((usp, i) => {
               const Icon = usp.icon;
               return (
                 <Reveal key={usp.title} delay={0.1 + i * 0.08}>
-                  <div className="group h-full rounded-2xl border border-ink/8 bg-white p-5 shadow-sm shadow-sand-600/5 transition-all duration-300 hover:-translate-y-1 hover:border-sand-300 hover:shadow-xl hover:shadow-sand-600/10 sm:p-7">
+                  <div className="group h-full rounded-2xl border border-ink/8 bg-white p-6 shadow-sm shadow-sand-600/5 transition-all duration-300 hover:-translate-y-1 hover:border-sand-300 hover:shadow-xl hover:shadow-sand-600/10 sm:p-7">
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sand-100 text-sand-600 ring-1 ring-ink/5 transition-colors group-hover:bg-ink group-hover:text-white">
                       <Icon className="h-5 w-5" strokeWidth={1.5} />
                     </div>

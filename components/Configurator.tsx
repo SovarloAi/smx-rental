@@ -23,7 +23,7 @@ import { whatsappLink } from "@/lib/config";
 
 const TOTAL_STEPS = 5;
 
-const SURFACES = ["Gras", "Klinkers", "Beton/asfalt", "Grind", "Anders"] as const;
+const SURFACES = ["Gras", "Klinkers", "Tegels", "Beton/asfalt", "Grind", "Anders"] as const;
 type Surface = (typeof SURFACES)[number];
 
 const SPACE_OPTIONS = ["Ja", "Nee", "Weet ik niet"] as const;
@@ -117,7 +117,12 @@ function evaluateLocation(s: FormState): Verdict | null {
 
   /* ---- twijfelgevallen — altijd dezelfde melding ---- */
   if (!fitsFull) return DOUBT_VERDICT;
-  if (s.surface === "Klinkers" || s.surface === "Grind" || s.surface === "Anders") {
+  if (
+    s.surface === "Klinkers" ||
+    s.surface === "Tegels" ||
+    s.surface === "Grind" ||
+    s.surface === "Anders"
+  ) {
     return DOUBT_VERDICT;
   }
   if (s.space !== "Ja") return DOUBT_VERDICT;
@@ -494,7 +499,7 @@ function StepLocation({
 
         <div>
           <label className="field-label">Wat is de ondergrond?</label>
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             {SURFACES.map((s) => (
               <ChoiceButton
                 key={s}
@@ -767,7 +772,7 @@ function ZoomableImage({
     <button
       type="button"
       onClick={() => onZoom(image)}
-      className="group relative h-20 w-24 flex-none overflow-hidden rounded-xl sm:h-24 sm:w-28"
+      className="group relative h-20 w-20 flex-none overflow-hidden rounded-xl sm:h-24 sm:w-28"
       aria-label="Foto vergroten"
       title="Klik om te vergroten"
     >
@@ -800,7 +805,7 @@ function SidewallStepper({
     >
       <ZoomableImage image={image} onZoom={onZoom} />
 
-      <div className="flex flex-1 items-center justify-between gap-3 py-1 pr-2">
+      <div className="flex flex-1 flex-col gap-3 py-1 pr-1 sm:flex-row sm:items-center sm:justify-between sm:pr-2">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
             <h4 className="text-base font-semibold text-ink">Zijwanden</h4>
@@ -814,7 +819,7 @@ function SidewallStepper({
           </p>
         </div>
 
-        <div className="flex flex-none items-center gap-3">
+        <div className="flex flex-none items-center gap-3 self-start sm:self-auto">
           <StepperButton
             onClick={() => onChange(Math.max(0, value - 1))}
             disabled={value === 0}
@@ -855,7 +860,7 @@ function StepperButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 bg-white text-lg text-ink transition-all hover:border-ink/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-white text-xl text-ink transition-all hover:border-ink/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
     >
       {children}
     </button>

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { NAV_LINKS, whatsappLink } from "@/lib/config";
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -15,6 +16,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -24,6 +26,7 @@ export default function Navbar() {
   }, []);
 
   const waMessage = "Hoi SMX Rental! Ik heb een vraag over jullie stretchtent.";
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <motion.header
@@ -47,6 +50,7 @@ export default function Navbar() {
         </a>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Desktop-navigatie */}
           <div className="hidden items-center gap-2 md:flex">
             {NAV_LINKS.map((link) => (
               <a
@@ -63,13 +67,60 @@ export default function Navbar() {
             href={whatsappLink(waMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-whatsapp"
+            className="btn-whatsapp hidden md:inline-flex"
           >
             <WhatsAppIcon className="h-4 w-4" />
             <span>WhatsApp</span>
           </a>
+
+          {/* Hamburger (mobiel/tablet) */}
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Menu sluiten" : "Menu openen"}
+            aria-expanded={menuOpen}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/15 text-ink transition-colors hover:border-ink/40 hover:bg-ink hover:text-white md:hidden"
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </nav>
+
+      {/* Uitklapmenu (mobiel/tablet) */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden border-t border-ink/10 bg-[#CBB897] shadow-lg shadow-ink/15 md:hidden"
+          >
+            <div className="container-x flex flex-col gap-2 py-4">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={closeMenu}
+                  className="rounded-xl border border-white/30 bg-white/15 px-4 py-3 text-base font-medium text-ink transition-colors hover:bg-ink hover:text-white"
+                >
+                  {link.label}
+                </a>
+              ))}
+              <a
+                href={whatsappLink(waMessage)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+                className="btn-whatsapp w-full py-3 text-base"
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                <span>WhatsApp</span>
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }
