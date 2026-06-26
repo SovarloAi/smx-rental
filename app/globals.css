@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sand: #c8b89a;
+
+  /* Consistent, zeer subtiel decoratief patroon: zachte zandvlekken +
+     dunne diagonale streepjes. Als gedeelde variabele zodat elke sectie
+     exact hetzelfde patroon gebruikt. Lage opacity = altijd leesbaar. */
+  --site-texture:
+    radial-gradient(38rem 38rem at 12% 15%, rgba(200, 184, 154, 0.12), transparent 60%),
+    radial-gradient(34rem 34rem at 88% 85%, rgba(156, 138, 100, 0.09), transparent 60%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(10, 10, 10, 0.03) 0px,
+      rgba(10, 10, 10, 0.03) 1px,
+      transparent 1px,
+      transparent 13px
+    );
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Account for fixed navbar when jumping to anchors */
+section[id] {
+  scroll-margin-top: 8.5rem;
+}
+
+body {
+  font-feature-settings: "ss01", "cv01";
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-12;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-7 py-3.5 text-sm font-medium tracking-tight text-white shadow-md shadow-ink/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-ink/90 hover:shadow-lg hover:shadow-ink/20 active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-7 py-3.5 text-sm font-medium tracking-tight text-ink shadow-sm shadow-ink/5 transition-all duration-300 hover:-translate-y-0.5 hover:border-ink/30 hover:bg-sand-50 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-whatsapp {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold tracking-tight text-white shadow-md shadow-[#25D366]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1da851] hover:shadow-lg hover:shadow-[#25D366]/30 active:translate-y-0 active:scale-[0.98];
+  }
+
+  .field-label {
+    @apply mb-2 block text-sm font-medium text-ink;
+  }
+
+  .field-input {
+    @apply w-full rounded-xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none transition-all placeholder:text-ink/30 focus:border-sand-500 focus:ring-4 focus:ring-sand-100;
+  }
+}
+
+/* Sectie met effen achtergrondkleur (wit/zand) + het gedeelde texture-patroon. */
+.site-texture {
+  background-image: var(--site-texture);
+}
+
+/* About-sectie: texture bovenop een verticaal zand→wit verloop (vloeiende seam). */
+.about-bg {
+  background-image: var(--site-texture),
+    linear-gradient(to bottom, #f5f1e8 0%, #fbf9f5 50%, #ffffff 100%);
+}
+
+/* Dunne, subtiele scrollbar voor de lange review-kaart */
+.reviews-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #ddd0b6 transparent;
+}
+.reviews-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.reviews-scroll::-webkit-scrollbar-thumb {
+  background-color: #ddd0b6;
+  border-radius: 9999px;
+}
+
+/* Subtle grain-free fade for hero gradient */
+.hero-gradient {
+  background-image: var(--site-texture),
+    linear-gradient(to bottom, #ffffff 0%, #ffffff 55%, #fbf9f5 78%, #f5f1e8 100%);
+}
