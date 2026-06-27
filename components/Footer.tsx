@@ -32,7 +32,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#configurator" className="transition-colors hover:text-ink">
-                  Bereken & reserveer
+                  Berekenen en Reserveren
                 </a>
               </li>
               <li>

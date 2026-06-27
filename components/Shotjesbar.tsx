@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Reveal from "./Reveal";
+import ZoomablePhoto from "./ZoomablePhoto";
 import { whatsappLink } from "@/lib/config";
 
 const INCLUDED = [
@@ -41,24 +41,18 @@ export default function Shotjesbar() {
           {/* Beeld: twee foto's */}
           <Reveal className="order-2 lg:order-1">
             <div className="grid grid-cols-2 gap-4">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-2xl ring-1 ring-[#E5C76B]/40 shadow-[0_10px_50px_-12px_rgba(212,175,55,0.45)]">
-                <Image
-                  src="/images/tent-3.jpg"
-                  alt="De SMX Rental Shotjesbar in de avond, met verlichte drankbakken — het schatkist-effect"
-                  fill
-                  sizes="(min-width: 1024px) 22vw, 45vw"
-                  className="object-cover"
-                />
-              </div>
-              <div className="relative mt-8 aspect-[3/4] overflow-hidden rounded-2xl ring-1 ring-[#E5C76B]/40 shadow-[0_10px_50px_-12px_rgba(212,175,55,0.45)]">
-                <Image
-                  src="/images/shotjesbar-detail.jpg"
-                  alt="De SMX Rental Shotjesbar van dichtbij — flessen in ijs, shotglaasjes en het krokodillenspel"
-                  fill
-                  sizes="(min-width: 1024px) 22vw, 45vw"
-                  className="object-cover"
-                />
-              </div>
+              <ZoomablePhoto
+                src="/images/tent-3.jpg"
+                alt="De SMX Rental Shotjesbar in de avond, met verlichte drankbakken — het schatkist-effect"
+                sizes="(min-width: 1024px) 22vw, 45vw"
+                className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl ring-1 ring-[#E5C76B]/40 shadow-[0_10px_50px_-12px_rgba(212,175,55,0.45)]"
+              />
+              <ZoomablePhoto
+                src="/images/shotjesbar-detail.jpg"
+                alt="De SMX Rental Shotjesbar van dichtbij — flessen in ijs, shotglaasjes en het krokodillenspel"
+                sizes="(min-width: 1024px) 22vw, 45vw"
+                className="relative mt-8 aspect-[3/4] w-full overflow-hidden rounded-2xl ring-1 ring-[#E5C76B]/40 shadow-[0_10px_50px_-12px_rgba(212,175,55,0.45)]"
+              />
             </div>
           </Reveal>
 

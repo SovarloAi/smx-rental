@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Tent, Hammer, ShieldCheck, MapPin } from "lucide-react";
 import Reveal from "./Reveal";
+import ZoomablePhoto from "./ZoomablePhoto";
 
 const USPS = [
   {
@@ -110,15 +110,13 @@ export default function About() {
               delay={i * 0.1}
               className="w-[78%] flex-none snap-start sm:w-auto"
             >
-              <div className="group relative aspect-[3/4] overflow-hidden rounded-2xl border border-ink/20 shadow-md shadow-sand-600/10 ring-1 ring-black/5 transition-all duration-300 hover:shadow-xl hover:shadow-sand-600/15">
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  sizes="(min-width: 640px) 33vw, 80vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
+              <ZoomablePhoto
+                src={img.src}
+                alt={img.alt}
+                sizes="(min-width: 640px) 33vw, 80vw"
+                className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-ink/20 shadow-md shadow-sand-600/10 ring-1 ring-black/5 transition-all duration-300 hover:shadow-xl hover:shadow-sand-600/15"
+                imgClassName="object-cover transition-transform duration-700 group-hover/zoom:scale-105"
+              />
             </Reveal>
           ))}
         </div>

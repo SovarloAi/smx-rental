@@ -15,7 +15,7 @@ export const COMPANY = {
 
 export const NAV_LINKS = [
   { href: "#over-ons", label: "Over ons" },
-  { href: "#configurator", label: "Bereken & reserveer" },
+  { href: "#configurator", label: "Berekenen en Reserveren" },
   { href: "#shotjesbar", label: "Verhuur" },
 ] as const;
 
