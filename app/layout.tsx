@@ -44,8 +44,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  // Favicon/icon worden automatisch opgepikt uit app/favicon.ico en app/icon.png
-  // (Next.js 14 file-conventie) — geen handmatige icons-config nodig.
+  // Statische icons uit /public (Edge-/Cloudflare-veilig — geen runtime-route).
+  // favicon.ico blijft in app/ en wordt automatisch geserveerd.
+  icons: {
+    icon: { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     title: "SMX Rental — Stretchtent verhuur in Limburg",
     description:
@@ -54,14 +58,21 @@ export const metadata: Metadata = {
     siteName: "SMX Rental",
     type: "website",
     locale: "nl_NL",
-    // og:image wordt automatisch gezet via app/opengraph-image.tsx (1200×630).
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "SMX Rental — stretchtent verhuur in Limburg",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "SMX Rental — Stretchtent verhuur in Limburg",
     description:
       "Luxe stretchtent huren in Limburg: 7,5 × 10 meter, op- en afbouw inbegrepen, vaste prijzen.",
-    // twitter:image valt terug op app/opengraph-image.tsx.
+    images: ["/og.png"],
   },
   robots: {
     index: true,
@@ -92,7 +103,7 @@ const jsonLd = {
     "Luxe stretchtent verhuur uit Neer, Limburg. Stretchtent van 7,5 × 10 meter voor 70–100 gasten, op- en afbouw inbegrepen.",
   url: "https://smxrental.com",
   logo: "https://smxrental.com/icon.png",
-  image: "https://smxrental.com/opengraph-image",
+  image: "https://smxrental.com/og.png",
   telephone: "+31620651528",
   email: "smxrental@gmail.com",
   priceRange: "€€",
