@@ -9,7 +9,7 @@ export default function Hero() {
   return (
     <section
       id="top"
-      className="hero-gradient relative flex min-h-screen items-center overflow-hidden pt-20 sm:pt-28 lg:pt-32"
+      className="hero-gradient hero-min-h relative flex items-center overflow-hidden pt-20 sm:pt-28 lg:pt-32"
     >
       {/* subtiele zandcirkel rechtsboven */}
       <div
@@ -17,7 +17,9 @@ export default function Hero() {
         className="pointer-events-none absolute -right-40 top-10 h-[36rem] w-[36rem] rounded-full bg-sand-100/60 blur-3xl"
       />
 
-      <div className="container-x relative z-10 grid w-full items-center gap-8 py-12 sm:gap-12 sm:py-16 lg:gap-16 lg:py-20 lg:grid-cols-[1.05fr_0.95fr]">
+      {/* Vanaf md (iPad staand) twee kolommen — anders kreeg een tablet de
+          telefoonlayout en werd de hero bijna twee schermen hoog. */}
+      <div className="container-x relative z-10 grid w-full items-center gap-8 py-12 sm:gap-12 sm:py-16 md:grid-cols-[1fr_0.85fr] md:gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-20">
         <div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -33,7 +35,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease, delay: 0.05 }}
-            className="font-serif text-[2.6rem] font-light leading-[1] tracking-tightest text-ink sm:text-6xl sm:leading-[0.95] lg:text-7xl xl:text-[5.5rem]"
+            className="font-serif text-[2.6rem] font-light leading-[1] tracking-tightest text-ink sm:text-6xl sm:leading-[0.95] md:text-[2.9rem] lg:text-7xl xl:text-[5.5rem]"
           >
             Uw feest.
             <br />
@@ -44,7 +46,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease, delay: 0.18 }}
-            className="mt-7 max-w-md text-lg leading-relaxed text-ink/65"
+            className="mt-7 max-w-md text-lg leading-relaxed text-ink/65 md:text-base lg:text-lg"
           >
             Een luxe stretchtent van 7,5 × 10 meter — ruimte voor 70 tot 100
             gasten. Wij verzorgen op- en afbouw, u geniet van het moment.
@@ -90,9 +92,9 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.96, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.9, ease, delay: 0.25 }}
-          className="relative mt-4 block sm:mt-6 lg:mt-0"
+          className="relative mt-4 block sm:mt-6 md:mt-0"
         >
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] border border-ink/20 shadow-2xl shadow-sand-600/10 ring-1 ring-black/5 sm:rounded-[2rem] lg:aspect-[4/5]">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] border border-ink/20 shadow-2xl shadow-sand-600/10 ring-1 ring-black/5 sm:rounded-[2rem] md:aspect-[3/4] lg:aspect-[4/5]">
             <Image
               src="/images/tent-overzicht.jpg"
               alt="Stretchtent van SMX Rental opgesteld op een grasveld"
@@ -114,7 +116,7 @@ export default function Hero() {
           </div>
 
           {/* Vertrouwenssignalen onder de foto */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink/55 lg:justify-start">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink/55 md:justify-start">
             <span className="flex items-center gap-2">
               <CheckDot /> Inclusief op- en afbouw
             </span>

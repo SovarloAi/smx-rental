@@ -1,6 +1,10 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  // Op touch-apparaten (iPad/iPhone) blijft een `hover:`-stijl na een tik
+  // "plakken". Met deze vlag gelden hover-stijlen alleen op apparaten met een
+  // echte muisaanwijzer.
+  future: { hoverOnlyWhenSupported: true },
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",

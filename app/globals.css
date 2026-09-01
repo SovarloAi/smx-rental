@@ -72,6 +72,18 @@ body {
   }
 }
 
+/* Herohoogte. Op iOS/iPadOS is 100vh de hoogte *zonder* Safari-balken, waardoor
+   de inhoud deels onder de fold valt. 100svh is de kleine viewport en klopt wel;
+   oudere Safari's vallen terug op 100vh. */
+.hero-min-h {
+  min-height: 100vh;
+}
+@supports (min-height: 100svh) {
+  .hero-min-h {
+    min-height: 100svh;
+  }
+}
+
 /* Sectie met effen achtergrondkleur (wit/zand) + het gedeelde texture-patroon. */
 .site-texture {
   background-image: var(--site-texture);

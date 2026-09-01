@@ -155,6 +155,36 @@ function weekendFridaysUntil(end: Date): Date[] {
   return out;
 }
 
+/** Groepeert de vrijdagen per kalenderjaar (oplopend, volgorde blijft behouden). */
+function groupWeekendsByYear(fridays: Date[]): { year: number; weekends: Date[] }[] {
+  const out: { year: number; weekends: Date[] }[] = [];
+  for (const fri of fridays) {
+    const year = fri.getFullYear();
+    const last = out[out.length - 1];
+    if (last && last.year === year) last.weekends.push(fri);
+    else out.push({ year, weekends: [fri] });
+  }
+  return out;
+}
+
+const MONTHS_SHORT = [
+  "jan", "feb", "mrt", "apr", "mei", "jun",
+  "jul", "aug", "sep", "okt", "nov", "dec",
+] as const;
+
+/**
+ * Compacte weekendtekst voor de blokjes. Binnen dezelfde maand korten we de
+ * maand één keer af ("3 – 5 jul"); loopt het weekend over de maandgrens, dan
+ * staan beide maanden erbij ("30 okt – 1 nov").
+ */
+function weekendChipLabel(fri: Date, sun: Date): string {
+  const m1 = MONTHS_SHORT[fri.getMonth()];
+  const m2 = MONTHS_SHORT[sun.getMonth()];
+  return m1 === m2
+    ? `${fri.getDate()} – ${sun.getDate()} ${m2}`
+    : `${fri.getDate()} ${m1} – ${sun.getDate()} ${m2}`;
+}
+
 function dateKey(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -241,8 +271,13 @@ export default function Configurator() {
   const total =
     WEEKEND_RATE + lightingCost + sidewallsCost + shotjesbarCost + transportCost;
 
-  // Alle (toekomstige) weekenden t/m eind oktober 2026.
-  const fridays = useMemo(() => weekendFridaysUntil(new Date(2026, 9, 31)), []);
+  // Alle (toekomstige) weekenden van dit jaar én heel volgend jaar. Het
+  // eindjaar rekenen we uit vanaf vandaag, zodat de kalender vanzelf
+  // meeschuift en niet jaarlijks handmatig bijgewerkt hoeft te worden.
+  const weekendYears = useMemo(() => {
+    const endOfNextYear = new Date(new Date().getFullYear() + 1, 11, 31);
+    return groupWeekendsByYear(weekendFridaysUntil(endOfNextYear));
+  }, []);
 
   /* ---- per-stap validatie ---- */
   const canContinue = (() => {
@@ -347,7 +382,7 @@ export default function Configurator() {
                     <StepLocation form={form} set={set} verdict={verdict} />
                   )}
                   {step === 2 && (
-                    <StepDate form={form} set={set} fridays={fridays} />
+                    <StepDate form={form} set={set} weekendYears={weekendYears} />
                   )}
                   {step === 3 && (
                     <StepOptions form={form} set={set} onZoom={setZoom} />
@@ -594,13 +629,13 @@ function VerdictNotice({ verdict }: { verdict: Verdict | null }) {
 function StepDate({
   form,
   set,
-  fridays,
-}: StepProps & { fridays: Date[] }) {
+  weekendYears,
+}: StepProps & { weekendYears: { year: number; weekends: Date[] }[] }) {
   return (
     <div>
       <StepHeading
         title="Kies uw weekend"
-        sub="Kies het weekend dat u uitkomt. Wij bevestigen de beschikbaarheid na uw aanvraag."
+        sub="Alle weekenden van dit jaar en volgend jaar staan hieronder — vrijdag t/m zondag. Wij bevestigen de beschikbaarheid na uw aanvraag."
       />
 
       <div className="mb-6 rounded-2xl border border-ink/8 bg-white p-5">
@@ -614,66 +649,78 @@ function StepDate({
         </p>
       </div>
 
-      <div className="reviews-scroll max-h-72 overflow-y-auto pr-1">
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          {fridays.map((fri) => {
-            const iso = fri.toISOString();
-            const sun = new Date(fri);
-            sun.setDate(sun.getDate() + 2);
-            const active = form.weekend === iso;
-            const unavailable = UNAVAILABLE_WEEKENDS.has(dateKey(fri));
-            return (
-              <button
-                key={iso}
-                type="button"
-                disabled={unavailable}
-                onClick={() => set("weekend", iso)}
-                aria-label={
-                  unavailable
-                    ? `${fmtDay(fri, { day: "numeric", month: "long" })} – ${fmtDay(sun, { day: "numeric", month: "long" })} (volgeboekt)`
-                    : undefined
-                }
-                className={`relative overflow-hidden rounded-xl border px-4 py-3.5 text-left transition-all ${
-                  unavailable
-                    ? "cursor-not-allowed border-ink/10 bg-sand-50/60 text-ink/35"
-                    : active
-                      ? "border-ink bg-ink text-white shadow-sm"
-                      : "border-ink/12 bg-white hover:border-ink/30 hover:bg-sand-50"
-                }`}
-              >
-                {!unavailable && (
-                  <span
-                    className={`block text-xs uppercase tracking-wide ${
-                      active ? "text-white/60" : "text-ink/40"
+      {/* Kalender: per jaar gegroepeerd, compacte blokjes (vrijdag t/m zondag). */}
+      <div className="reviews-scroll max-h-[22rem] overflow-y-auto pr-1 sm:max-h-[26rem]">
+        {weekendYears.map(({ year, weekends }) => (
+          <div key={year} className="mb-6 last:mb-0">
+            {/* Jaarkop blijft in beeld tijdens het scrollen */}
+            <div className="sticky top-0 z-10 -mx-1 mb-2.5 flex items-baseline gap-3 bg-white px-1 pb-2 pt-0.5">
+              <span className="font-serif text-xl font-light tracking-tight text-ink">
+                {year}
+              </span>
+              <span className="h-px flex-1 self-center bg-ink/10" />
+              <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink/40">
+                {weekends.length} weekenden
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5 min-[420px]:grid-cols-3 sm:grid-cols-4 sm:gap-2 lg:grid-cols-5">
+              {weekends.map((fri) => {
+                const iso = fri.toISOString();
+                const sun = new Date(fri);
+                sun.setDate(sun.getDate() + 2);
+                const active = form.weekend === iso;
+                const unavailable = UNAVAILABLE_WEEKENDS.has(dateKey(fri));
+                return (
+                  <button
+                    key={iso}
+                    type="button"
+                    disabled={unavailable}
+                    onClick={() => set("weekend", iso)}
+                    aria-label={
+                      unavailable
+                        ? `${fmtDay(fri, { day: "numeric", month: "long" })} – ${fmtDay(sun, { day: "numeric", month: "long", year: "numeric" })} (volgeboekt)`
+                        : `Weekend ${fmtDay(fri, { day: "numeric", month: "long" })} t/m ${fmtDay(sun, { day: "numeric", month: "long", year: "numeric" })}`
+                    }
+                    className={`relative overflow-hidden rounded-lg border px-1.5 py-2 text-center text-[12px] font-semibold leading-tight tracking-tight transition-colors sm:text-[13px] ${
+                      unavailable
+                        ? "cursor-not-allowed border-ink/10 bg-sand-50/60 text-ink/35"
+                        : active
+                          ? "border-ink bg-ink text-white shadow-sm"
+                          : "border-ink/12 bg-white text-ink hover:border-ink/30 hover:bg-sand-50"
                     }`}
                   >
-                    Weekend
-                  </span>
-                )}
-                <span
-                  className={`block text-sm font-semibold ${
-                    unavailable ? "" : "mt-0.5"
-                  }`}
-                >
-                  {fmtDay(fri, { day: "numeric", month: "short" })} –{" "}
-                  {fmtDay(sun, { day: "numeric", month: "short" })}
-                </span>
-                {/* Volgeboekt: alleen een diagonale streep, geen verdere info */}
-                {unavailable && (
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(to top right, transparent calc(50% - 0.75px), rgba(10,10,10,0.28) calc(50% - 0.75px), rgba(10,10,10,0.28) calc(50% + 0.75px), transparent calc(50% + 0.75px))",
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
+                    <span className="block whitespace-nowrap">
+                      {weekendChipLabel(fri, sun)}
+                    </span>
+                    {/* Volgeboekt: alleen een diagonale streep, geen verdere info */}
+                    {unavailable && (
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0"
+                        style={{
+                          backgroundImage:
+                            "linear-gradient(to top right, transparent calc(50% - 0.75px), rgba(10,10,10,0.28) calc(50% - 0.75px), rgba(10,10,10,0.28) calc(50% + 0.75px), transparent calc(50% + 0.75px))",
+                        }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* Gekozen weekend voluit, zodat de compacte blokjes niet dubbelzinnig zijn */}
+      {form.weekend && (
+        <p className="mt-4 text-sm text-ink/70">
+          Gekozen weekend:{" "}
+          <span className="font-semibold text-ink">
+            {weekendLabel(form.weekend)}
+          </span>
+        </p>
+      )}
 
       {/* Andere datum aanvragen */}
       <div className="mt-5 rounded-2xl border border-dashed border-ink/20 bg-sand-50/60 p-4">
@@ -860,7 +907,7 @@ function SidewallStepper({
   onZoom: (img: ZoomImage) => void;
 }) {
   const image: ZoomImage = {
-    src: "/images/zijwand-rechtop-180.png",
+    src: "/images/zijwand-rechtop-180.jpg",
     alt: "Stretchtent met zijwand voor extra bescherming",
   };
   return (

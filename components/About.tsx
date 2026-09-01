@@ -50,7 +50,9 @@ export default function About() {
     >
       <div className="container-x">
         <div className="grid gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
-          <div className="lg:sticky lg:top-32 lg:self-start">
+          {/* md:max-w-2xl houdt de regellengte op een iPad leesbaar; vanaf lg
+              staat deze kolom toch al naast de kaarten. */}
+          <div className="md:max-w-2xl lg:max-w-none lg:sticky lg:top-32 lg:self-start">
             <Reveal>
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-sand-600">
                 Over ons
