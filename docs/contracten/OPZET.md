@@ -96,23 +96,27 @@ Cloudflare Access bestaat niet op localhost, dus inloggen kan daar niet. Zet
 Dat werkt alleen bij `NODE_ENV === "development"`; een Pages-build draait met
 `NODE_ENV=production` en kan die tak nooit nemen.
 
-## `npm run cf:build` — let op de valse melding
+## De versie van `@cloudflare/next-on-pages` luistert nauw
 
-`npm run cf:build` draait `@cloudflare/next-on-pages` lokaal, om te controleren
-of elke route de edge-runtime declareert. Dat is nuttig: vergeet je bij een
-nieuwe API-route `export const runtime = "edge"`, dan vang je dat hiermee op.
+Cloudflare bouwt met `npx @cloudflare/next-on-pages@1`, wat **1.13.16**
+oplevert. Die versie moet ook in `package.json` staan, want `npx` pakt een
+lokaal geïnstalleerde versie als die er is — zet je er een andere in, dan bouwt
+de buildserver met jóúw versie.
 
-De versie die we lokaal moeten gebruiken (1.13.12) is wel wat ouder: 1.13.16+
-eist `next >= 14.3` en dit project draait 14.2.35. Die oudere versie meldt ten
-onrechte dat vier routes de edge-runtime missen:
+Dat ging in eerste instantie mis: 1.13.16 eist als peer `next >= 14.3` en dit
+project draait 14.2.35, dus werd 1.13.12 gepind. Die oudere versie ziet de vier
+statische metadata-routes (`/favicon.ico`, `/manifest.webmanifest`,
+`/robots.txt`, `/sitemap.xml`) ten onrechte aan voor node-functies en breekt de
+build af met "not configured to run with the Edge Runtime".
 
-```
-/favicon.ico  /manifest.webmanifest  /robots.txt  /sitemap.xml
-```
+De oplossing is 1.13.16 mét `legacy-peer-deps=true` in `.npmrc`. Die peer-eis
+klopt in de praktijk niet — het is precies de combinatie waarmee Cloudflare zelf
+al maanden bouwt. Zonder die vlag loopt de `npm install` vast die de build
+intern uitvoert.
 
-Die zijn statisch (ze staan in `.next/prerender-manifest.json`) en draaien
-gewoon live. **Negeer die vier; let alleen op routes die je zelf hebt
-toegevoegd.** De echte bouwcontrole is de preview-deploy van Cloudflare.
+**Verander de versie van `@cloudflare/next-on-pages` dus niet zonder
+`npm run cf:build` te draaien.** Die controle vangt dit op, en vangt ook af dat
+je bij een nieuwe API-route `export const runtime = "edge"` vergeet.
 
 ## Twee dingen die onderweg bleken
 
