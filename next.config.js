@@ -11,4 +11,16 @@ const nextConfig = {
   },
 };
 
+// Tijdens `next dev` de Cloudflare-bindings (D1 en R2) beschikbaar maken via
+// miniflare, op basis van wrangler.dev.toml. Draait nooit in een productiebuild.
+if (process.env.NODE_ENV === "development") {
+  const { setupDevPlatform } = require("@cloudflare/next-on-pages/next-dev");
+  setupDevPlatform({ configPath: "wrangler.dev.toml" }).catch((err) => {
+    console.warn(
+      "[contracten] Lokale Cloudflare-bindings niet geladen:",
+      err?.message ?? err
+    );
+  });
+}
+
 module.exports = nextConfig;
