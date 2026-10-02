@@ -68,12 +68,31 @@ Zero Trust → Access → Applications → Add a self-hosted application:
 Noteer daarna onder Overview de **Application Audience (AUD) Tag** — die gaat
 in `CF_ACCESS_AUD`.
 
-### 4. Migraties op de echte database
+### 4. Migraties op de databases
+
+Er zijn twee databases, zodat testen op de preview niet in de echte contracten
+terechtkomt:
+
+| Omgeving | Database | ID |
+| --- | --- | --- |
+| Production | `smx-contracten` | `0cbd3a14-16d1-4cbd-8cb7-17b257d1c223` |
+| Preview | `smx-contracten-preview` | `72c72e3b-db4f-4bcb-8233-c74983463c8b` |
+
+Beide staan in regio `weur`. Let op: D1 kent geen jurisdicties zoals R2 —
+`--location` is alleen een hint. De R2-bucket heeft wél de formele EU-garantie.
 
 ```bash
-npx wrangler login          # eenmalig
-npm run db:migrate:prod
+npx wrangler login             # eenmalig
+npm run db:migrate:prod        # smx-contracten
+npm run db:migrate:preview     # smx-contracten-preview
 ```
+
+Draai bij elke nieuwe migratie **allebei**.
+
+### 5. Compatibility flag
+
+Zowel Production als Preview hebben `nodejs_compat` nodig onder
+Settings → Runtime. Zonder die vlag geeft elke pagina een 503.
 
 ## Lokaal draaien
 

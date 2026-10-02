@@ -10,7 +10,8 @@
     "db:migrate": "wrangler d1 migrations apply smx-contracten --config wrangler.dev.toml --local",
     "db:migrate:prod": "wrangler d1 migrations apply smx-contracten --config wrangler.dev.toml --remote",
     "db:console": "wrangler d1 execute smx-contracten --config wrangler.dev.toml --local --command",
-    "cf:build": "next-on-pages"
+    "cf:build": "next-on-pages",
+    "db:migrate:preview": "wrangler d1 migrations apply smx-contracten-preview --config wrangler.dev.toml --env preview --remote"
   },
   "dependencies": {
     "framer-motion": "^11.3.0",

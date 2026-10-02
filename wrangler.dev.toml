@@ -37,3 +37,22 @@ jurisdiction = "eu"
 [vars]
 CONTRACT_BASIS_URL = "http://localhost:3001"
 # CF_ACCESS_TEAM_DOMAIN en CF_ACCESS_AUD staan lokaal in .dev.vars (niet in git).
+
+# ---------------------------------------------------------------------------
+# Preview-omgeving. Alleen bedoeld om migraties op de aparte preview-database
+# te kunnen draaien:
+#
+#   npm run db:migrate:preview
+#
+# De binding zelf staat, net als bij productie, in het Pages-dashboard.
+# ---------------------------------------------------------------------------
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "smx-contracten-preview"
+database_id = "72c72e3b-db4f-4bcb-8233-c74983463c8b"
+migrations_dir = "migrations"
+
+[[env.preview.r2_buckets]]
+binding = "BESTANDEN"
+bucket_name = "smx-contracten-bestanden"
+jurisdiction = "eu"
