@@ -8,9 +8,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { EIGEN_WHATSAPP } from "@/lib/contracten/berichten";
-import { voornaam } from "@/lib/contracten/formatteer";
-import { datumLang } from "@/lib/contracten/formatteer";
+import { naamMetHoofdletters, voornaam } from "@/lib/contracten/formatteer";
+import { productOmschrijving } from "@/lib/contracten/producten";
 import { VERHUURDER } from "@/lib/contracten/voorwaarden";
 import type { Artikel } from "@/lib/contracten/voorwaarden";
 import type { KlantContract } from "@/lib/contracten/types";
@@ -50,7 +49,7 @@ export default function KlantPagina({ token }: { token: string }) {
         </h1>
         <p className="klant-lead mt-4">
           Wij maken uw huurovereenkomst nog klaar. U krijgt bericht zodra hij
-          klaarstaat. Vragen? Bel of app gerust: {VERHUURDER.telefoon}.
+          klaarstaat.
         </p>
       </Omhulsel>
     );
@@ -95,11 +94,11 @@ function NietGevonden() {
         Dit contract is niet gevonden
       </h1>
       <p className="klant-lead mt-4">
-        Controleer of u de volledige link heeft geopend. Lukt het niet, bel of
-        app dan gerust met Sjors op {VERHUURDER.telefoon}.
+        Controleer of u de volledige link heeft geopend. Lukt het niet, bel dan
+        even met Sjors.
       </p>
       <p className="mt-7">
-        <a href={`tel:+31620651528`} className="btn-klant-rand">Bel {VERHUURDER.telefoon}</a>
+        <a href="tel:+31620651528" className="btn-klant-rand">Bel {VERHUURDER.telefoon}</a>
       </p>
     </>
   );
@@ -114,7 +113,7 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
 
   const [telefoon, setTelefoon] = useState(contract.klantTelefoon);
   const [email, setEmail] = useState(contract.klantEmail);
-  const [naam, setNaam] = useState(contract.klantNaam);
+  const [naam, setNaam] = useState(naamMetHoofdletters(contract.klantNaam));
   const [plaats, setPlaats] = useState(
     (contract.adres.match(/\d{4}\s?[A-Za-z]{2}\s+(.+)$/)?.[1] ?? "").trim()
   );
@@ -177,20 +176,9 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
         Goedendag {voornaam(contract.klantNaam)},
       </h1>
       <p className="klant-lead mt-4">
-        Hieronder staat uw huurovereenkomst. Leest u alles rustig door en zet
-        onderaan uw handtekening. Dit duurt ongeveer vijf minuten.
+        Hieronder staat uw huurovereenkomst voor {productOmschrijving(contract)}.
+        Leest u alles rustig door en zet onderaan uw handtekening.
       </p>
-
-      <ol className="mt-7 flex gap-2 text-[16px] font-medium text-ink/60">
-        {["Controleren", "Lezen", "Ondertekenen"].map((stap, i) => (
-          <li key={stap} className="flex flex-1 items-center gap-2 rounded-xl bg-sand-100 px-3 py-2.5">
-            <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-ink text-[13px] font-bold text-white">
-              {i + 1}
-            </span>
-            {stap}
-          </li>
-        ))}
-      </ol>
 
       <section className="mt-10">
         <h2 className="klant-h2">Uw huur in het kort</h2>
@@ -199,7 +187,7 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
 
       <section className="mt-10">
         <h2 className="klant-h2">Uw gegevens</h2>
-        <p className="mt-2 text-ink/70">Klopt dit? U kunt het hier aanpassen.</p>
+        <p className="mt-2 text-ink/70">Klopt dit nog?</p>
         <div className="mt-5 space-y-5">
           <label className="block">
             <span className="mb-2 block font-semibold text-ink">Telefoonnummer</span>
@@ -219,7 +207,6 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
 
       <section className="mt-10">
         <h2 className="klant-h2">Huurvoorwaarden</h2>
-        <p className="mt-2 text-ink/70">Tik op een onderdeel om het te openen.</p>
         <div className="mt-4"><Voorwaarden artikelen={voorwaarden.artikelen} /></div>
       </section>
 
@@ -254,7 +241,7 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
         </div>
 
         <p className="mb-3 mt-7 font-semibold text-ink">
-          Zet hieronder uw handtekening met uw vinger of muis
+          Zet hieronder uw handtekening
         </p>
         <Handtekeningvak ref={pad} onVerandering={setHeeftHandtekening} />
 
@@ -276,7 +263,7 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
         </div>
 
         <p className="mt-5 text-center text-[17px] text-ink/60">
-          Vragen? Bel of app Sjors:{" "}
+          Vragen? Bel Sjors op{" "}
           <a href="tel:+31620651528" className="font-semibold text-ink underline underline-offset-4">
             {VERHUURDER.telefoon}
           </a>
@@ -290,10 +277,6 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
 
 function Bedankt({ contract }: { contract: KlantContract }) {
   const af = contract.status === "goedgekeurd";
-  const bericht =
-    `Goedendag Sjors, ik heb zojuist het huurcontract voor ` +
-    `${datumLang(contract.feestDatum)} ondertekend. Groet, ` +
-    `${contract.signerNaam || contract.klantNaam}`;
 
   return (
     <>
@@ -309,21 +292,8 @@ function Bedankt({ contract }: { contract: KlantContract }) {
         <p className="klant-lead mx-auto mt-4 max-w-lg">
           {af
             ? "Uw contract is door ons beiden ondertekend."
-            : "Uw contract is ondertekend. Sjors kijkt het na en daarna ontvangt u het definitieve contract."}
+            : "Uw contract is ondertekend. Sjors krijgt hiervan bericht en stuurt u daarna het definitieve contract."}
         </p>
-
-        {!af && (
-          <div className="mt-8">
-            <a href={`https://wa.me/${EIGEN_WHATSAPP}?text=${encodeURIComponent(bericht)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#25D366] px-7 text-[19px] font-semibold text-white transition-colors hover:bg-[#1da851]">
-              Laat het Sjors weten via WhatsApp
-            </a>
-            <p className="mt-3 text-[17px] text-ink/55">
-              Dit hoeft niet — Sjors krijgt ook vanzelf bericht.
-            </p>
-          </div>
-        )}
       </div>
 
       <section className="mt-12">

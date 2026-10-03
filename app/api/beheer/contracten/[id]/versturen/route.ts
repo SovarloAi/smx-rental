@@ -28,8 +28,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const bijgewerkt = await contractOpId(params.id);
     return json({
       contract: bijgewerkt,
-      ...whatsappBericht(contract, "versturen", basisUrl()),
-      link: klantLink(contract.token, basisUrl()),
+      ...whatsappBericht(contract, "versturen", basisUrl(req)),
+      link: klantLink(contract.token, basisUrl(req)),
     });
   });
 }

@@ -119,6 +119,9 @@ export type KlantContract = {
   klantTelefoon: string;
   klantEmail: string;
   adres: string;
+  /** Nodig om de teksten te laten kloppen met wat er gehuurd wordt. */
+  tent: boolean;
+  shotjesbar: boolean;
   feestDatum: string;
   opbouwDatum: string;
   opbouwTijd: string;

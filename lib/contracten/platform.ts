@@ -54,7 +54,21 @@ export function bucket(): R2Bucket {
   return BESTANDEN;
 }
 
-/** Basis-URL voor links in berichten en e-mails. */
-export function basisUrl(): string {
+/**
+ * Basis-URL voor links in berichten en e-mails.
+ *
+ * We leiden hem af van het verzoek zelf. Zo wijst een link die je op de preview
+ * aanmaakt naar de preview, en een link vanaf smxrental.com naar de live site —
+ * zonder dat daar een instelling voor goed moet staan. `CONTRACT_BASIS_URL`
+ * blijft als noodgreep bestaan voor het geval de herkomst niet te bepalen is.
+ */
+export function basisUrl(req?: Request): string {
+  if (req) {
+    try {
+      return new URL(req.url).origin;
+    } catch {
+      /* onbruikbare URL; val terug op de instelling */
+    }
+  }
   return bindings().CONTRACT_BASIS_URL?.replace(/\/$/, "") || "https://smxrental.com";
 }

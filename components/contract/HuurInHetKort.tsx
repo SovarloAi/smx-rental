@@ -32,7 +32,7 @@ export default function HuurInHetKort({ contract }: { contract: KlantContract })
             <td className="py-4 pr-4 align-bottom">
               <span className="text-[21px] font-semibold text-ink">Totaal</span>
               <br />
-              <span className="text-[16px] text-ink/60">geen btw, kleineondernemersregeling</span>
+              <span className="text-[16px] text-ink/60">er wordt geen btw gerekend</span>
             </td>
             <td className="whitespace-nowrap py-4 text-right align-bottom">
               <span className="font-serif text-[30px] font-light tracking-tight text-ink">
@@ -44,7 +44,7 @@ export default function HuurInHetKort({ contract }: { contract: KlantContract })
       </table>
 
       <p className="mt-4 text-[18px] leading-relaxed text-ink/75">
-        U betaalt pas na afloop, via een factuur.
+        U betaalt pas na afloop. U ontvangt daarvoor een factuur.
       </p>
 
       {contract.afspraken && (

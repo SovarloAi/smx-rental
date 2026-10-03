@@ -49,6 +49,8 @@ export async function GET(req: Request, { params }: { params: { token: string } 
     adres:
       contract.plaatsingsadres ||
       [contract.klantAdres, contract.klantPostcodePlaats].filter(Boolean).join(", "),
+    tent: contract.tent,
+    shotjesbar: contract.shotjesbar,
     feestDatum: contract.feestDatum,
     opbouwDatum: contract.opbouwDatum,
     opbouwTijd: contract.opbouwTijd,
