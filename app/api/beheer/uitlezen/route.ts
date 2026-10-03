@@ -63,10 +63,14 @@ export async function POST(req: Request) {
     }
 
     const form = await req.formData().catch(() => null);
-    const bestand = form?.get("afbeelding");
-    if (!(bestand instanceof File)) return fout("Geen afbeelding ontvangen.", 422);
+    const deel = form?.get("afbeelding");
+    // Niet op `instanceof File` controleren: in de edge-runtime komt een
+    // bestandsdeel als Blob binnen, en Blob is daar geen File.
+    if (!deel || typeof deel === "string") return fout("Geen afbeelding ontvangen.", 422);
+    const bestand = deel as Blob;
+
     if (!TOEGESTAAN.includes(bestand.type)) {
-      return fout("Gebruik een JPG, PNG, GIF of WEBP.", 415);
+      return fout(`Gebruik een JPG, PNG, GIF of WEBP${bestand.type ? ` (dit is ${bestand.type})` : ""}.`, 415);
     }
     if (bestand.size > MAX_BYTES) {
       return fout("De afbeelding is te groot. Maak hem kleiner dan 3,5 MB.", 413);

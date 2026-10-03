@@ -28,8 +28,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const form = await req.formData().catch(() => null);
-    const bestand = form?.get("bestand");
-    if (!(bestand instanceof File)) return fout("Geen bestand ontvangen.", 422);
+    const deel = form?.get("bestand");
+    // Zie uitlezen/route.ts: in de edge-runtime is een bestandsdeel een Blob.
+    if (!deel || typeof deel === "string") return fout("Geen bestand ontvangen.", 422);
+    const bestand = deel as Blob;
 
     const ext = TOEGESTAAN[bestand.type];
     if (!ext) return fout("Alleen JPG, PNG, HEIC of PDF.", 415);
