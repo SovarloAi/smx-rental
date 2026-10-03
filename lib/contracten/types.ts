@@ -46,11 +46,17 @@ export type ContractInvoer = {
   afbouwDatum: string;
   afbouwTijd: string;
 
+  /** Minimaal één product is verplicht: tent, shotjesbar, of allebei. */
+  tent: boolean;
+  shotjesbar: boolean;
+  /** Extra huurdagen; gelden voor alle gehuurde producten. */
   extraDagen: number;
+  /** Alleen bij de tent. */
   verlichting: boolean;
   zijwanden: number; // 0-2
+  /** Aantal extra dagen dat de zijwanden blijven staan (0 t/m extraDagen). */
+  zijwandExtraDagen: number;
   klinkers: boolean;
-  shotjesbar: boolean;
   transportCent: number;
   afspraken: string;
 };

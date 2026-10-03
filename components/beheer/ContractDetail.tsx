@@ -75,13 +75,16 @@ export default function ContractDetail({ id }: { id: string }) {
     <div className="space-y-5">
       <div>
         <KnopLink href="/beheer" soort="stil" className="-ml-4">← Alle contracten</KnopLink>
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <h1 className="font-serif text-3xl font-light tracking-tight text-ink">
+        <p className="mt-3 text-sm font-medium uppercase tracking-[0.2em] text-sand-600">
+          {[c.tent && "Stretchtent", c.shotjesbar && "Shotjesbar"].filter(Boolean).join(" + ")}
+        </p>
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <h1 className="font-serif text-4xl font-light leading-tight tracking-tightest text-ink">
             {c.klantNaam || "Naamloos"}
           </h1>
           <StatusLabel status={c.status} opPapier={c.opPapier} />
         </div>
-        <p className="mt-1 text-ink/60">{datumLang(c.feestDatum)}</p>
+        <p className="mt-2 text-lg text-ink/60">{datumLang(c.feestDatum)}</p>
       </div>
 
       {fout && <Melding toon="fout">{fout}</Melding>}
@@ -131,10 +134,10 @@ export default function ContractDetail({ id }: { id: string }) {
               </tr>
             ))}
             <tr className="border-t-2 border-ink/15">
-              <td className="py-3 font-semibold text-ink">
+              <td className="py-3.5 font-semibold text-ink">
                 Totaal <span className="font-normal text-ink/50">(geen btw, KOR)</span>
               </td>
-              <td className="whitespace-nowrap py-3 text-right align-bottom font-serif text-xl font-light tabular-nums">
+              <td className="whitespace-nowrap py-3.5 text-right align-bottom font-serif text-2xl font-light tabular-nums">
                 {euro(data.overzicht.totaalCent)}
               </td>
             </tr>
@@ -165,9 +168,9 @@ export default function ContractDetail({ id }: { id: string }) {
         <Tijdlijn contract={c} events={data.events} />
       </Blok>
 
-      <div className="rounded-2xl border border-ink/10 bg-white p-5 sm:p-6">
-        <h2 className="mb-1 font-serif text-xl font-light tracking-tight text-ink">Contract verwijderen</h2>
-        <p className="mb-4 text-sm text-ink/55">
+      <div className="panel">
+        <h2 className="font-serif text-2xl font-light tracking-tightest text-ink">Contract verwijderen</h2>
+        <p className="mb-5 mt-1 text-sm leading-relaxed text-ink/55">
           Dit verwijdert het contract, de audit-log en alle opgeslagen bestanden.
           Dit kan niet ongedaan gemaakt worden.
         </p>
@@ -193,7 +196,7 @@ export default function ContractDetail({ id }: { id: string }) {
       </div>
 
       <p className="pb-4 text-center text-xs text-ink/40">
-        Aangemaakt op {tijdstip(c.createdAt)} · voorwaarden {c.voorwaardenVersie}
+        Aangemaakt op {tijdstip(c.createdAt)} · huurvoorwaarden {c.voorwaardenVersie}
       </p>
 
       {venster && (

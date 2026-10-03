@@ -7,12 +7,14 @@
  * dezelfde inhoud altijd dezelfde hash geeft.
  */
 
-import { voorwaarden } from "./voorwaarden";
+import { voorwaardenVoor } from "./voorwaarden";
 import { berekenOverzicht } from "./regels";
 import type { Contract } from "./types";
 
 export function canoniekePayload(c: Contract): string {
-  const v = voorwaarden(c.voorwaardenVersie);
+  // Alleen de artikelen die bij dít contract horen: dat is wat de klant
+  // gelezen en ondertekend heeft.
+  const v = voorwaardenVoor(c.voorwaardenVersie, c);
   const overzicht = berekenOverzicht(c);
 
   return JSON.stringify({
@@ -28,6 +30,7 @@ export function canoniekePayload(c: Contract): string {
     regels: overzicht.regels.map((r) => [r.omschrijving, r.toelichting, r.bedragCent]),
     totaalCent: overzicht.totaalCent,
     afspraken: c.afspraken,
+    producten: { tent: c.tent, shotjesbar: c.shotjesbar },
     voorwaarden: { versie: v.versie, artikelen: v.artikelen, checks: v.checks },
   });
 }

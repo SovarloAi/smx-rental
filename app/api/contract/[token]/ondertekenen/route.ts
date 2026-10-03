@@ -15,7 +15,7 @@ import {
 } from "@/lib/contracten/db";
 import { documentHash } from "@/lib/contracten/hash";
 import { pngUitDataUrl, sleutels, zetBestand } from "@/lib/contracten/r2";
-import { voorwaarden } from "@/lib/contracten/voorwaarden";
+import { voorwaardenVoor } from "@/lib/contracten/voorwaarden";
 import { geldigTokenFormaat } from "@/lib/contracten/token";
 import { LIMIETEN, binnenLimiet, bezoekerIp } from "@/lib/contracten/ratelimit";
 import { json, fout } from "@/lib/contracten/api";
@@ -58,13 +58,13 @@ export async function POST(req: Request, { params }: { params: { token: string }
   const ontbreekt: string[] = [];
   const naam = (body.naam ?? "").trim().slice(0, 120);
   const plaats = (body.plaats ?? "").trim().slice(0, 120);
-  const checks = voorwaarden(contract.voorwaardenVersie).checks;
+  const checks = voorwaardenVoor(contract.voorwaardenVersie, contract).checks;
   const akkoord = Array.isArray(body.akkoord) ? body.akkoord : [];
 
   if (!naam) ontbreekt.push("Vul uw naam in.");
   if (!plaats) ontbreekt.push("Vul de plaats in.");
   if (akkoord.length !== checks.length || !akkoord.every(Boolean)) {
-    ontbreekt.push("Zet alle drie de vinkjes.");
+    ontbreekt.push(`Zet alle ${checks.length} vinkjes.`);
   }
 
   const png = body.handtekeningPng ? pngUitDataUrl(body.handtekeningPng) : null;

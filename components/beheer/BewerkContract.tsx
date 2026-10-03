@@ -6,6 +6,7 @@ import { api, ApiFout } from "@/lib/contracten/client";
 import type { Contract } from "@/lib/contracten/types";
 import { Melding } from "./ui";
 import ContractFormulier from "./ContractFormulier";
+import KopRegel from "./KopRegel";
 
 export default function BewerkContract({ id }: { id: string }) {
   const router = useRouter();
@@ -30,10 +31,8 @@ export default function BewerkContract({ id }: { id: string }) {
 
   return (
     <>
-      <h1 className="font-serif text-3xl font-light tracking-tight text-ink">Contract bewerken</h1>
-      <p className="mb-6 mt-1.5 text-ink/60">
-        Wijzigingen gelden meteen voor de link die de klant al heeft.
-      </p>
+      <KopRegel eyebrow="Contracten" titel="Contract bewerken"
+        sub="Wijzigingen gelden meteen voor de link die de klant al heeft." />
       <ContractFormulier bestaand={contract} />
     </>
   );

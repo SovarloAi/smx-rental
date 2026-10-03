@@ -13,18 +13,20 @@ export const CENT = 100;
 export const TARIEVEN = {
   /** Stretchtent 7,5 × 10 m, weekendtarief incl. op- en afbouw. */
   tent: 550 * CENT,
-  /** Extra huurdag. */
+  /** Extra huurdag voor de stretchtent. */
   extraDag: 75 * CENT,
   /** Sfeerverlichting per weekend; extra dagen gratis. */
   verlichting: 30 * CENT,
   /** Zijwand 10 m, per stuk per weekend (maximaal 2). */
   zijwand: 50 * CENT,
-  /** Toeslag per zijwand per extra dag. */
+  /** Toeslag per zijwand per extra dag dat de zijwanden blijven staan. */
   zijwandExtraDag: 10 * CENT,
   /** Toeslag plaatsing op klinkers of bestrating (extra opbouwtijd). */
   klinkers: 75 * CENT,
   /** Shotjesbar per weekend. */
   shotjesbar: 380 * CENT,
+  /** Extra huurdag voor de Shotjesbar. */
+  shotjesbarExtraDag: 40 * CENT,
 } as const;
 
 export const MAX_ZIJWANDEN = 2;

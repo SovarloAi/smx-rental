@@ -22,8 +22,9 @@ const KOLOMMEN = `
   id, token, status, created_at, updated_at, sent_at, opened_at, signed_at,
   approved_at, reminded_at, klant_naam, klant_adres, klant_postcode_plaats,
   klant_telefoon, klant_email, plaatsingsadres, feest_datum, opbouw_datum,
-  opbouw_tijd, afbouw_datum, afbouw_tijd, extra_dagen, verlichting, zijwanden,
-  klinkers, shotjesbar, transport_cent, afspraken, totaal_cent,
+  opbouw_tijd, afbouw_datum, afbouw_tijd, tent, shotjesbar, extra_dagen,
+  verlichting, zijwanden, zijwand_extra_dagen, klinkers, transport_cent,
+  afspraken, totaal_cent,
   voorwaarden_versie, signer_naam, signer_plaats, signature_key, signed_ip,
   signed_user_agent, document_hash, op_papier, papier_key, pdf_key, gezien
 `;
@@ -61,11 +62,13 @@ function naarContract(r: Rij): Contract {
     afbouwDatum: s("afbouw_datum"),
     afbouwTijd: s("afbouw_tijd"),
 
+    tent: b("tent"),
+    shotjesbar: b("shotjesbar"),
     extraDagen: n("extra_dagen"),
     verlichting: b("verlichting"),
     zijwanden: n("zijwanden"),
+    zijwandExtraDagen: n("zijwand_extra_dagen"),
     klinkers: b("klinkers"),
-    shotjesbar: b("shotjesbar"),
     transportCent: n("transport_cent"),
     afspraken: s("afspraken"),
 
@@ -132,9 +135,9 @@ export async function maakContract(invoer: ContractInvoer): Promise<Contract> {
         id, token, status, created_at, updated_at,
         klant_naam, klant_adres, klant_postcode_plaats, klant_telefoon, klant_email,
         plaatsingsadres, feest_datum, opbouw_datum, opbouw_tijd, afbouw_datum, afbouw_tijd,
-        extra_dagen, verlichting, zijwanden, klinkers, shotjesbar, transport_cent,
-        afspraken, totaal_cent, voorwaarden_versie, gezien
-      ) VALUES (?,?,'concept',?,?, ?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,1)`
+        tent, shotjesbar, extra_dagen, verlichting, zijwanden, zijwand_extra_dagen,
+        klinkers, transport_cent, afspraken, totaal_cent, voorwaarden_versie, gezien
+      ) VALUES (?,?,'concept',?,?, ?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,1)`
     )
     .bind(
       id, token, t, t,
@@ -142,8 +145,9 @@ export async function maakContract(invoer: ContractInvoer): Promise<Contract> {
       invoer.klantTelefoon, invoer.klantEmail,
       invoer.plaatsingsadres, invoer.feestDatum, invoer.opbouwDatum,
       invoer.opbouwTijd, invoer.afbouwDatum, invoer.afbouwTijd,
-      norm.extraDagen, norm.verlichting ? 1 : 0, norm.zijwanden,
-      norm.klinkers ? 1 : 0, norm.shotjesbar ? 1 : 0, norm.transportCent,
+      norm.tent ? 1 : 0, norm.shotjesbar ? 1 : 0, norm.extraDagen,
+      norm.verlichting ? 1 : 0, norm.zijwanden, norm.zijwandExtraDagen,
+      norm.klinkers ? 1 : 0, norm.transportCent,
       invoer.afspraken, totaal, HUIDIGE_VERSIE
     )
     .run();
@@ -176,16 +180,18 @@ export async function wijzigContract(
         updated_at = ?, klant_naam = ?, klant_adres = ?, klant_postcode_plaats = ?,
         klant_telefoon = ?, klant_email = ?, plaatsingsadres = ?, feest_datum = ?,
         opbouw_datum = ?, opbouw_tijd = ?, afbouw_datum = ?, afbouw_tijd = ?,
-        extra_dagen = ?, verlichting = ?, zijwanden = ?, klinkers = ?,
-        shotjesbar = ?, transport_cent = ?, afspraken = ?, totaal_cent = ?
+        tent = ?, shotjesbar = ?, extra_dagen = ?, verlichting = ?, zijwanden = ?,
+        zijwand_extra_dagen = ?, klinkers = ?, transport_cent = ?,
+        afspraken = ?, totaal_cent = ?
        WHERE id = ?`
     )
     .bind(
       nu(), invoer.klantNaam, invoer.klantAdres, invoer.klantPostcodePlaats,
       invoer.klantTelefoon, invoer.klantEmail, invoer.plaatsingsadres, invoer.feestDatum,
       invoer.opbouwDatum, invoer.opbouwTijd, invoer.afbouwDatum, invoer.afbouwTijd,
-      norm.extraDagen, norm.verlichting ? 1 : 0, norm.zijwanden, norm.klinkers ? 1 : 0,
-      norm.shotjesbar ? 1 : 0, norm.transportCent, invoer.afspraken, totaal,
+      norm.tent ? 1 : 0, norm.shotjesbar ? 1 : 0, norm.extraDagen,
+      norm.verlichting ? 1 : 0, norm.zijwanden, norm.zijwandExtraDagen,
+      norm.klinkers ? 1 : 0, norm.transportCent, invoer.afspraken, totaal,
       id
     )
     .run();

@@ -8,7 +8,7 @@
 
 import { contractOpToken, logEvent, markeerGeopend } from "@/lib/contracten/db";
 import { berekenOverzicht } from "@/lib/contracten/regels";
-import { voorwaarden } from "@/lib/contracten/voorwaarden";
+import { voorwaardenVoor } from "@/lib/contracten/voorwaarden";
 import { geldigTokenFormaat } from "@/lib/contracten/token";
 import { LIMIETEN, binnenLimiet, bezoekerIp } from "@/lib/contracten/ratelimit";
 import { json, fout } from "@/lib/contracten/api";
@@ -38,7 +38,7 @@ export async function GET(req: Request, { params }: { params: { token: string } 
     contract.status = "geopend";
   }
 
-  const v = voorwaarden(contract.voorwaardenVersie);
+  const v = voorwaardenVoor(contract.voorwaardenVersie, contract);
 
   const klant: KlantContract = {
     token: contract.token,

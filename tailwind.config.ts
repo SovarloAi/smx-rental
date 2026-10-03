@@ -31,6 +31,14 @@ const config: Config = {
       letterSpacing: {
         tightest: "-0.04em",
       },
+      // Tailwind genereert opacity in stappen van 5. De site gebruikt al langer
+      // /8 en /12 (o.a. border-ink/8 op alle kaarten); zonder deze toevoeging
+      // bestaan die klassen niet en valt de rand terug op Tailwinds grijze
+      // standaardkleur in plaats van het bedoelde zachte inkt-randje.
+      opacity: {
+        8: "0.08",
+        12: "0.12",
+      },
       maxWidth: {
         "8xl": "88rem",
       },

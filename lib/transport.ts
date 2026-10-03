@@ -192,6 +192,18 @@ export function calcTransport(postcodeInput: string): TransportResult {
   return transportFromDistance(Math.round(rawKm), region.label);
 }
 
+/**
+ * Bij tent én shotjesbar samen wordt de shotjesbar apart vervoerd (eigen auto),
+ * dus tellen dezelfde transportkosten dubbel. Wordt gebruikt door zowel de
+ * publieke calculator als de contractmodule.
+ */
+export function transportVoorProducten(
+  basiskosten: number,
+  producten: { tent: boolean; shotjesbar: boolean }
+): number {
+  return basiskosten * (producten.tent && producten.shotjesbar ? 2 : 1);
+}
+
 /** Formatteert een euro-bedrag als "€500,-" of "€42,-". */
 export function formatEuro(amount: number): string {
   return `€${amount.toLocaleString("nl-NL")},-`;
