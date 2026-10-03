@@ -35,7 +35,7 @@ type Body = {
 export async function POST(req: Request, { params }: { params: { token: string } }) {
   const ip = bezoekerIp(req);
   if (!(await binnenLimiet(`tekenen:${ip}`, LIMIETEN.ondertekenen))) {
-    return fout("Te veel pogingen. Probeer het over een paar minuten opnieuw.", 429);
+    return fout("Er zijn te veel pogingen gedaan vanaf dit apparaat. Wacht een paar minuten en probeer het opnieuw, of bel Sjors op 06 20 65 15 28.", 429);
   }
 
   const token = params.token ?? "";

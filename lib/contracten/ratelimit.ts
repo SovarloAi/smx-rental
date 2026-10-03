@@ -11,7 +11,15 @@ export type Limiet = { max: number; vensterSeconden: number };
 
 export const LIMIETEN = {
   lezen: { max: 60, vensterSeconden: 60 },
-  ondertekenen: { max: 5, vensterSeconden: 300 },
+  /**
+   * Ruim bemeten, en met opzet. De limiet telt ook pogingen die op de
+   * validatie stranden, en onze klanten zijn vaak wat ouder: iemand die een
+   * paar keer een vinkje vergeet, mag daarna niet buitengesloten worden. Tegen
+   * het raden van tokens beschermt deze limiet toch niet — dat doen de 32
+   * willekeurige bytes van het token zelf. Hij is er alleen om herhaald
+   * bestoken van de route af te remmen.
+   */
+  ondertekenen: { max: 30, vensterSeconden: 300 },
 } as const satisfies Record<string, Limiet>;
 
 /**
