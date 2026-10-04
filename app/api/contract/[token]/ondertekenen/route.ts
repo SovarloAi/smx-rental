@@ -19,6 +19,9 @@ import { voorwaardenVoor } from "@/lib/contracten/voorwaarden";
 import { geldigTokenFormaat } from "@/lib/contracten/token";
 import { LIMIETEN, binnenLimiet, bezoekerIp } from "@/lib/contracten/ratelimit";
 import { json, fout } from "@/lib/contracten/api";
+import { verstuurMail } from "@/lib/contracten/mail";
+import { mailOndertekend } from "@/lib/contracten/mails";
+import { basisUrl } from "@/lib/contracten/platform";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -106,7 +109,17 @@ export async function POST(req: Request, { params }: { params: { token: string }
     userAgent: req.headers.get("User-Agent"),
   });
 
-  // TODO (fase 4): melding per e-mail naar Sjors.
+  // Melding naar Sjors. Lukt dat niet, dan is dat voor de klant niet van
+  // belang: hij heeft getekend en ziet gewoon het bedankscherm. Sjors ziet het
+  // contract sowieso in het overzicht met een melding.
+  const bijgewerkt = await contractOpToken(token);
+  if (bijgewerkt) {
+    const beheerUrl = `${basisUrl(req)}/beheer/contract/${bijgewerkt.id}`;
+    const verstuurd = await verstuurMail(mailOndertekend(bijgewerkt, beheerUrl));
+    if (!verstuurd.ok) {
+      console.warn("Melding over ondertekening niet verstuurd:", verstuurd.reden);
+    }
+  }
 
   return json({ ok: true, documentHash: hash });
 }

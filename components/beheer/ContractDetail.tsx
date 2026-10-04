@@ -20,6 +20,7 @@ export default function ContractDetail({ id }: { id: string }) {
   const [bezig, setBezig] = useState<string | null>(null);
   const [venster, setVenster] = useState<{ gegevens: VerstuurAntwoord; soort: Soort } | null>(null);
   const [bevestigVerwijderen, setBevestigVerwijderen] = useState(false);
+  const [waarschuwingen, setWaarschuwingen] = useState<string[]>([]);
 
   const laad = useCallback(async () => {
     try {
@@ -91,8 +92,16 @@ export default function ContractDetail({ id }: { id: string }) {
 
       {c.status === "ondertekend" && (
         <Melding toon="goed" titel="Ondertekend door de klant">
-          Controleer de gegevens hieronder en keur het contract daarna goed.
-          Goedkeuren, de PDF en de e-mails komen in de volgende fase.
+          Controleer de gegevens hieronder. Bij goedkeuren komt uw handtekening
+          erbij, maken we de PDF en sturen we die naar de klant en naar uzelf.
+        </Melding>
+      )}
+
+      {waarschuwingen.length > 0 && (
+        <Melding toon="waarschuwing" titel="Goedgekeurd, maar let hier even op">
+          <ul className="list-disc space-y-0.5 pl-5">
+            {waarschuwingen.map((w) => <li key={w}>{w}</li>)}
+          </ul>
         </Melding>
       )}
 
@@ -110,11 +119,36 @@ export default function ContractDetail({ id }: { id: string }) {
           </Knop>
         )}
         {teBewerken && <KnopLink href={`/beheer/contract/${id}/bewerken`}>Bewerken</KnopLink>}
-        {c.status === "goedgekeurd" && (
-          <Knop bezig={bezig === "definitief"}
-            onClick={() => actie("definitief", () => api.versturen(id), "definitief")}>
-            Definitief contract sturen
+        {c.status === "ondertekend" && (
+          <Knop bezig={bezig === "goedkeuren"}
+            onClick={async () => {
+              setBezig("goedkeuren");
+              setFout(null);
+              setWaarschuwingen([]);
+              try {
+                const res = await api.goedkeuren(id);
+                setWaarschuwingen(res.waarschuwingen);
+                await laad();
+              } catch (e) {
+                setFout(e instanceof ApiFout ? e.message : "Goedkeuren lukte niet.");
+              } finally {
+                setBezig(null);
+              }
+            }}>
+            Goedkeuren en afronden
           </Knop>
+        )}
+        {c.status === "goedgekeurd" && (
+          <>
+            <a href={`/api/beheer/bestand?key=${encodeURIComponent(c.pdfKey ?? "")}`}
+              target="_blank" rel="noopener noreferrer" className="btn-secondary btn-sm min-h-[44px]">
+              PDF openen
+            </a>
+            <Knop bezig={bezig === "definitief"}
+              onClick={() => actie("definitief", () => api.versturen(id), "definitief")}>
+              Link naar de klant sturen
+            </Knop>
+          </>
         )}
       </div>
 

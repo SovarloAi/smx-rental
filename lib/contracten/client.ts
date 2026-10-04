@@ -73,6 +73,11 @@ export const api = {
   herinneren: (id: string) =>
     vraag<VerstuurAntwoord>(`/api/beheer/contracten/${id}/herinneren`, { method: "POST" }),
 
+  goedkeuren: (id: string) =>
+    vraag<{ contract: Contract; link: string; waarschuwingen: string[] }>(
+      `/api/beheer/contracten/${id}/goedkeuren`, { method: "POST" }
+    ),
+
   gezien: (id: string) =>
     vraag<{ ok: true }>(`/api/beheer/contracten/${id}/gezien`, { method: "POST" }),
 
