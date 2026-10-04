@@ -170,3 +170,59 @@ app/api/beheer/**     beheer-API (achter Access)
 app/api/contract/**   klant-API (token)
 migrations/           D1-migraties
 ```
+
+## Back-up en herstel van de database
+
+D1 heeft **Time Travel**: Cloudflare bewaart 30 dagen aan wijzigingen, zodat je
+de database kunt terugzetten naar elk moment daarbinnen. Er hoeft niets
+ingesteld te worden; het staat standaard aan.
+
+Huidige positie opvragen:
+
+```bash
+npx wrangler d1 time-travel info smx-contracten --config wrangler.dev.toml
+```
+
+Terugzetten naar een tijdstip (of naar een bookmark uit het commando hierboven):
+
+```bash
+# naar een moment
+npx wrangler d1 time-travel restore smx-contracten \
+  --config wrangler.dev.toml --timestamp 2026-10-04T09:00:00Z
+
+# of naar een exact punt
+npx wrangler d1 time-travel restore smx-contracten \
+  --config wrangler.dev.toml --bookmark <bookmark>
+```
+
+Let op:
+
+- **Terugzetten overschrijft de huidige database.** Vraag eerst met `info` de
+  bookmark van nú op, dan kun je altijd weer terug naar waar je begon.
+- **R2 gaat niet mee.** Handtekeningen en PDF's blijven staan zoals ze zijn.
+  Zet je de database terug naar vóór een ondertekening, dan blijft de
+  handtekening in R2 staan maar verwijst geen contract er meer naar. Dat is
+  onhandig, geen ramp.
+- Voor een los contract is terugzetten vrijwel nooit het juiste middel — dan
+  raak je ook alles kwijt wat daarna is gebeurd. Gebruik het alleen als er echt
+  iets grondig misgaat.
+
+Een export maken kan ook, bijvoorbeeld als maandelijkse kopie:
+
+```bash
+npx wrangler d1 export smx-contracten --config wrangler.dev.toml --remote \
+  --output ~/Documents/smx-contracten-$(date +%F).sql
+```
+
+## Wat waar wordt opgeslagen (AVG)
+
+| Waar | Welke gegevens | Waarom |
+| --- | --- | --- |
+| **D1** `contracts` (regio WEUR) | naam, adres, postcode en plaats, telefoon, e-mail, plaatsingsadres, de gegevens van de ondertekening (naam, plaats, IP, apparaat) | uitvoeren van de overeenkomst en bewijs van ondertekening |
+| **D1** `events` | per gebeurtenis: tijdstip, IP en apparaat | aantoonbaar maken wanneer er is verstuurd, geopend en getekend |
+| **R2** (EU-jurisdictie) | handtekening van de klant (PNG), de definitieve PDF, eventueel een foto van een papieren contract | het contract zelf |
+| **Resend** | e-mailadres, naam en de PDF als bijlage | versturen van het contract |
+| **Anthropic** | alleen wat op een geüploade schermafbeelding staat | het formulier vooraf invullen; de afbeelding wordt niet opgeslagen |
+| **Cloudflare-logs** | standaard verkeerslogs | hosting |
+
+Bewaartermijn: er wordt op dit moment **niets automatisch verwijderd**.
