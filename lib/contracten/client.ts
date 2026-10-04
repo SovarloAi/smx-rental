@@ -77,7 +77,7 @@ export const api = {
     vraag<{ ok: true }>(`/api/beheer/contracten/${id}/gezien`, { method: "POST" }),
 
   eigenHandtekening: () =>
-    vraag<{ gezet: boolean }>("/api/beheer/instellingen/handtekening"),
+    vraag<{ gezet: boolean; key: string | null }>("/api/beheer/instellingen/handtekening"),
 
   zetEigenHandtekening: (png: string) =>
     vraag<{ gezet: boolean }>("/api/beheer/instellingen/handtekening", {

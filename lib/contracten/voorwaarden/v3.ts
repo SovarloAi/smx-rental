@@ -7,7 +7,7 @@
  *   geldt staat in tentspecifieke artikelen, zodat een Shotjesbar-contract geen
  *   bepalingen over tentdoek, spanlijnen of regenwater bevat.
  * - De Shotjesbar heeft eigen artikelen, inclusief een eigen artikel over
- *   schoonmaak en schade. Daar gaat het om gemorste drank en glaswerk, niet om
+ *   schoonmaak en schade. Daar gaat het om gemorste drank en vervuiling, niet om
  *   gras en modder.
  * - Het vinkje over kabels en leidingen is vervallen. Dat wordt bij de opbouw
  *   samen besproken; artikel "Kabels en leidingen" beschrijft dat nu zo.
@@ -74,8 +74,9 @@ export const ARTIKELEN: readonly Artikel[] = [
     voor: "shotjesbar",
     leden: [
       "De Shotjesbar is een omgebouwde Volkswagen Golf Cabriolet op een aanhanger, waarvan de achterklep opengaat.",
-      "Bij de huurprijs horen 50 shotjes, tien bekende merken sterke drank en het Krokodil Shot spel.",
-      "De geleverde drank blijft na afloop van de huurperiode eigendom van de huurder, ook de flessen die niet zijn geopend. Het Krokodil Shot spel, het glaswerk en de bar zelf blijven eigendom van verhuurder en gaan weer mee terug.",
+      "Bij de huurprijs horen minimaal 50 shotjes, tien bekende merken sterke drank, ijs, wegwerp-shotglaasjes en het Crocodile shotspel.",
+      "De geleverde drank blijft na afloop van de huurperiode eigendom van de huurder, ook de flessen die niet zijn geopend. De shotglaasjes zijn wegwerpglaasjes en hoeven niet terug.",
+      "Het Crocodile shotspel en de Shotjesbar zelf blijven eigendom van verhuurder en gaan na de huurperiode weer mee terug.",
     ],
   },
   {
@@ -84,6 +85,7 @@ export const ARTIKELEN: readonly Artikel[] = [
     leden: [
       "Verhuurder rijdt de Shotjesbar zo dicht mogelijk naar de gewenste plek en zet hem daar neer. Het laatste stuk kan zo nodig geduwd worden. De huurder hoeft de bar niet zelf te plaatsen.",
       "De ondergrond maakt niet uit; de Shotjesbar kan op vrijwel elke ondergrond staan. De huurder zorgt wel dat de plek met een auto bereikbaar is.",
+      "De Shotjesbar mag ook binnen staan, mits de locatie bereikbaar is en de ondergrond geschikt is.",
       "De Shotjesbar heeft stroom nodig. De huurder zorgt voor één werkende aansluiting binnen bereik.",
       "De huurder verplaatst, duwt of sleept de Shotjesbar niet zelf en opent de motorkap niet.",
     ],
@@ -108,7 +110,7 @@ export const ARTIKELEN: readonly Artikel[] = [
     kop: "Self-service en toezicht",
     voor: "shotjesbar",
     leden: [
-      "De Shotjesbar is volledig self-service. Er staat niemand achter de bar en verhuurder is tijdens het feest niet aanwezig. Gasten pakken zelf een shotje of spelen zelf het Krokodil Shot spel.",
+      "De Shotjesbar is volledig self-service. Er staat niemand achter de bar en verhuurder is tijdens het feest niet aanwezig. Gasten pakken zelf een shotje of spelen zelf het Crocodile shotspel.",
       "De huurder is verantwoordelijk voor het schenken en voor het naleven van de wettelijke regels daarover. De huurder verstrekt geen alcohol aan personen onder de 18 jaar en niet aan personen die kennelijk in staat van dronkenschap verkeren.",
       "Verhuurder is niet aansprakelijk voor schade of letsel dat voortkomt uit het gebruik van de geleverde drank.",
     ],
@@ -151,8 +153,8 @@ export const ARTIKELEN: readonly Artikel[] = [
     leden: [
       "De huurder hoeft de Shotjesbar niet schoongemaakt terug te leveren. Er wordt wel normaal gebruik verwacht.",
       "Is er bijvoorbeeld een complete fles drank gemorst of is de binnenkant van de bar sterk vervuild geraakt, dan kan verhuurder de schoonmaakkosten doorberekenen. Die kosten worden achteraf vastgesteld op basis van de werkelijke kosten.",
-      "Schade aan de Shotjesbar, het glaswerk of het Krokodil Shot spel komt voor rekening van de huurder. Dat geldt ook voor het aanbrengen van stickers, tape of andere zaken op of aan de bar.",
-      "Regen is geen probleem voor de Shotjesbar. De huurder zorgt wel dat glaswerk en losse onderdelen bij slecht weer veilig worden weggezet.",
+      "Schade aan de Shotjesbar of het Crocodile shotspel komt voor rekening van de huurder. Dat geldt ook voor het aanbrengen van stickers, tape of andere zaken op of aan de bar.",
+      "Regen is geen probleem voor de Shotjesbar. De huurder zorgt wel dat losse onderdelen bij slecht weer veilig worden weggezet.",
     ],
   },
   {

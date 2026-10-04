@@ -16,7 +16,8 @@ import type { Blob as WorkersBlob } from "@cloudflare/workers-types";
 /** Sleutelindeling, zodat alles van één contract bij elkaar staat. */
 export const sleutels = {
   handtekeningKlant: (contractId: string) => `contracten/${contractId}/handtekening-klant.png`,
-  handtekeningEigen: () => `instellingen/handtekening-verhuurder.png`,
+  handtekeningEigen: (ext: "png" | "jpg" = "png") =>
+    `instellingen/handtekening-verhuurder.${ext}`,
   pdf: (contractId: string) => `contracten/${contractId}/huurovereenkomst.pdf`,
   papier: (contractId: string, ext: string) => `contracten/${contractId}/op-papier.${ext}`,
 };

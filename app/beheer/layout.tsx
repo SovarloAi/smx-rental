@@ -21,7 +21,11 @@ export default function BeheerLayout({ children }: { children: React.ReactNode }
               priority className="h-10 w-auto transition-transform duration-300 group-hover:scale-[1.03] sm:h-14" />
             <span className="text-sm font-medium tracking-tight text-ink/70">Contracten</span>
           </Link>
-          <Link href="/beheer/nieuw" className="btn-primary btn-sm">Nieuw contract</Link>
+          <div className="flex items-center gap-2">
+            <Link href="/beheer/instellingen"
+              className="btn-quiet px-4 py-2 text-sm">Instellingen</Link>
+            <Link href="/beheer/nieuw" className="btn-primary btn-sm">Nieuw contract</Link>
+          </div>
         </div>
       </header>
       <main className="container-x max-w-4xl py-7 sm:py-10">{children}</main>
