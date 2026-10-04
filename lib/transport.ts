@@ -12,6 +12,8 @@
  * deze module bevat de rekenlogica en een hemelsbrede fallback op postcodegebied.
  */
 
+import { TARIEVEN, CENT } from "./prijzen";
+
 export const NEER = { lat: 51.2717, lon: 5.9836 } as const;
 
 export const FREE_RADIUS_KM = 10; // eerste 10 km per rit gratis
@@ -20,12 +22,16 @@ export const PRICE_PER_KM = 0.85;
 export const NUM_TRIPS = 4; // 2 ritten opbouw (heen+terug) + 2 ritten afbouw
 export const FREE_KM_TOTAL = NUM_TRIPS * FREE_RADIUS_KM; // 4 × 10 = 40 km vrijgesteld
 
-/** Tarieven (in euro). */
-export const WEEKEND_RATE = 550; // stretchtent basis, per weekend
-export const EXTRA_DAY_RATE = 75; // per extra dag, incl. op/afbouw
-export const LIGHTING_PRICE = 30; // verlichting, per weekend
-export const SIDEWALL_PRICE = 50; // per zijwand, per weekend
-export const SHOTJESBAR_PRICE = 380; // shotjesbar, per weekend
+/**
+ * Tarieven (in hele euro's) — afgeleid van `lib/prijzen.ts`, dat de bedragen in
+ * centen bijhoudt en ook door de contractmodule wordt gebruikt. Zo staat een
+ * tarief op precies één plek.
+ */
+export const WEEKEND_RATE = TARIEVEN.tent / CENT; // stretchtent basis, per weekend
+export const EXTRA_DAY_RATE = TARIEVEN.extraDag / CENT; // per extra dag, incl. op/afbouw
+export const LIGHTING_PRICE = TARIEVEN.verlichting / CENT; // verlichting, per weekend
+export const SIDEWALL_PRICE = TARIEVEN.zijwand / CENT; // per zijwand, per weekend
+export const SHOTJESBAR_PRICE = TARIEVEN.shotjesbar / CENT; // shotjesbar, per weekend
 
 /** Haversine-afstand in kilometers tussen twee coördinaten. */
 export function haversineKm(
@@ -184,6 +190,18 @@ export function calcTransport(postcodeInput: string): TransportResult {
 
   const rawKm = haversineKm(NEER, { lat: region.lat, lon: region.lon });
   return transportFromDistance(Math.round(rawKm), region.label);
+}
+
+/**
+ * Bij tent én shotjesbar samen wordt de shotjesbar apart vervoerd (eigen auto),
+ * dus tellen dezelfde transportkosten dubbel. Wordt gebruikt door zowel de
+ * publieke calculator als de contractmodule.
+ */
+export function transportVoorProducten(
+  basiskosten: number,
+  producten: { tent: boolean; shotjesbar: boolean }
+): number {
+  return basiskosten * (producten.tent && producten.shotjesbar ? 2 : 1);
 }
 
 /** Formatteert een euro-bedrag als "€500,-" of "€42,-". */

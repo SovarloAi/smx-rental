@@ -19,7 +19,7 @@ Beschikbare basisinformatie (gebruik UITSLUITEND dit):
 - Op- en afbouw: doorgaans opbouw op vrijdagavond en afbouw op zondagochtend, altijd in overleg.
 - Boeken: via de knop "Bereken prijs" op de site stelt u in een paar stappen uw aanvraag samen en verstuurt u die via WhatsApp.
 - Beschikbaarheid: bevestigen we na ontvangst van de aanvraag (geef nooit exacte data of garanties).
-- Annulering: binnen 7 dagen voor aanvang 25% van het huurbedrag, binnen 48 uur 50%.
+- Annulering (zoals in de huurovereenkomst): tot 14 dagen voor de opbouwdatum kosteloos; binnen 14 dagen 25% van het huurbedrag; binnen 7 dagen 50%; binnen 48 uur 75%.
 - De ShotjesBar is een omgebouwde Volkswagen Golf Cabriolet en bevat o.a. 50+ shotjes, 10 merken sterke drank en een spel.
 - Het tentdoek is brandveilig gecertificeerd.
 

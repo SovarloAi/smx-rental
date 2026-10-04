@@ -1,0 +1,13 @@
+# Kopieer naar `.dev.vars` (staat in .gitignore) voor lokale ontwikkeling.
+# Deze waarden horen in productie in het Cloudflare Pages-dashboard, niet hier.
+
+# Zero Trust → Settings → Custom Pages, of de URL van je Access-loginscherm.
+CF_ACCESS_TEAM_DOMAIN=jouwteam.cloudflareaccess.com
+# Zero Trust → Access → Applications → jouw app → Overview → Application Audience (AUD) Tag
+CF_ACCESS_AUD=
+# Resend → API Keys
+RESEND_API_KEY=
+
+# Alleen lokaal: zet hier je e-mailadres om de Access-controle over te slaan.
+# Werkt uitsluitend bij `npm run dev` (NODE_ENV=development), nooit in productie.
+LOKALE_BEHEERDER=sjorsdirkx03@gmail.com

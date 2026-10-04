@@ -9,3 +9,10 @@ npm-debug.log*
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# Cloudflare lokale secrets
+.dev.vars
+.wrangler/
+
+# Testscreenshots (horen in de scratchpad, niet in de repo)
+/shots-*/

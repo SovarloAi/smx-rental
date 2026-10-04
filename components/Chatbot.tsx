@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Phone, Mail, Send } from "lucide-react";
@@ -15,6 +16,7 @@ const FALLBACK =
 type Msg = { role: "user" | "bot"; text: string };
 
 export default function Chatbot() {
+  const pad = usePathname();
   const [open, setOpen] = useState(false);
   const [nudge, setNudge] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([{ role: "bot", text: WELCOME }]);
@@ -47,6 +49,11 @@ export default function Chatbot() {
     markSeen();
   };
 
+  // De chatbot hoort bij de publieke site. Op het beheerscherm en de
+  // contractpagina's heeft hij niets te zoeken: die zijn niet voor bezoekers
+  // en de widget zou over de ondertekenknop heen vallen.
+  const verbergen = pad?.startsWith("/beheer") || pad?.startsWith("/contract");
+
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
@@ -77,6 +84,8 @@ export default function Chatbot() {
       setLoading(false);
     }
   };
+
+  if (verbergen) return null;
 
   return (
     <>
