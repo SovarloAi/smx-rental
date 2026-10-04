@@ -153,10 +153,20 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
           naam: naam.trim(), plaats: plaats.trim(),
           telefoon: telefoon.trim(), email: email.trim(),
           handtekeningPng: pad.current?.dataUrl(), akkoord,
+          versie: contract.versie,
         }),
       });
       const antwoord = (await res.json().catch(() => null)) as
-        | { ok?: boolean; fout?: string; fouten?: string[] } | null;
+        | { ok?: boolean; fout?: string; fouten?: string[]; verouderd?: boolean } | null;
+
+      // Het contract is tussendoor gewijzigd: opnieuw laden, zodat de klant de
+      // actuele gegevens ziet voordat hij tekent.
+      if (res.status === 409 && antwoord?.verouderd) {
+        setFouten([antwoord.fout ?? "Dit contract is zojuist aangepast."]);
+        setBezig(false);
+        setTimeout(() => window.location.reload(), 2500);
+        return;
+      }
 
       if (!res.ok) {
         setFouten(antwoord?.fouten ?? [antwoord?.fout ?? "Het ondertekenen lukte niet. Probeer het opnieuw."]);

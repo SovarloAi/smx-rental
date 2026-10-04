@@ -122,6 +122,12 @@ export type Prijsoverzicht = {
 export type KlantContract = {
   token: string;
   status: Status;
+  /**
+   * Kenmerk van de versie die de klant te zien krijgt. Gaat mee terug bij het
+   * ondertekenen, zodat iemand nooit tekent voor een contract dat intussen is
+   * gewijzigd.
+   */
+  versie: string;
   klantNaam: string;
   klantTelefoon: string;
   klantEmail: string;

@@ -27,6 +27,7 @@ export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 type Body = {
+  versie?: string;
   naam?: string;
   plaats?: string;
   telefoon?: string;
@@ -57,10 +58,25 @@ export async function POST(req: Request, { params }: { params: { token: string }
   const body = (await req.json().catch(() => null)) as Body | null;
   if (!body) return fout("Ongeldig verzoek.", 400);
 
+  // Is het contract gewijzigd nadat de klant de pagina opende? Dan mag hij niet
+  // tekenen voor iets wat hij niet gezien heeft.
+  if (body.versie && body.versie !== contract.updatedAt) {
+    return json(
+      {
+        verouderd: true,
+        fout:
+          "Dit contract is zojuist aangepast. Ververs de pagina, lees de " +
+          "gewijzigde gegevens door en onderteken daarna opnieuw.",
+      },
+      409
+    );
+  }
+
   // Dezelfde controles als op de pagina, maar dan serverkant.
   const ontbreekt: string[] = [];
-  const naam = (body.naam ?? "").trim().slice(0, 120);
-  const plaats = (body.plaats ?? "").trim().slice(0, 120);
+  const schoon = (t: string) => t.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+  const naam = schoon(body.naam ?? "").slice(0, 120);
+  const plaats = schoon(body.plaats ?? "").slice(0, 120);
   const checks = voorwaardenVoor(contract.voorwaardenVersie, contract).checks;
   const akkoord = Array.isArray(body.akkoord) ? body.akkoord : [];
 
@@ -76,8 +92,9 @@ export async function POST(req: Request, { params }: { params: { token: string }
   if (ontbreekt.length) return json({ fouten: ontbreekt }, 422);
 
   // Correcties van de klant meenemen vóór we de hash berekenen.
-  const telefoon = (body.telefoon ?? "").trim().slice(0, 40) || contract.klantTelefoon;
-  const email = (body.email ?? "").trim().slice(0, 160);
+  const telefoon =
+    schoon(body.telefoon ?? "").replace(/[^0-9+()\s-]/g, "").slice(0, 40) || contract.klantTelefoon;
+  const email = schoon(body.email ?? "").slice(0, 160);
   if (email && !/^\S+@\S+\.\S+$/.test(email)) {
     return json({ fouten: ["Het e-mailadres ziet er niet geldig uit."] }, 422);
   }

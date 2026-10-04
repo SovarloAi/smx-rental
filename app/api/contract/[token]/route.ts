@@ -43,6 +43,7 @@ export async function GET(req: Request, { params }: { params: { token: string } 
   const klant: KlantContract = {
     token: contract.token,
     status: contract.status,
+    versie: contract.updatedAt,
     klantNaam: contract.klantNaam,
     klantTelefoon: contract.klantTelefoon,
     klantEmail: contract.klantEmail,

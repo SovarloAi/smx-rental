@@ -23,6 +23,31 @@ export function fout(bericht: string, status = 400): Response {
 }
 
 /**
+ * Controleert of een verzoek van onze eigen pagina's komt.
+ *
+ * Cloudflare Access werkt met een cookie. Zonder deze controle zou een
+ * kwaadaardige website een formulier naar /api/beheer kunnen sturen terwijl
+ * Sjors is ingelogd: de browser stuurt het cookie mee, Access laat het door en
+ * de actie wordt uitgevoerd. Voor alles wat iets wijzigt eisen we daarom dat
+ * het verzoek aantoonbaar van onze eigen oorsprong komt.
+ */
+function zelfdeHerkomst(req: Request): boolean {
+  const site = req.headers.get("Sec-Fetch-Site");
+  if (site) return site === "same-origin";
+
+  // Oudere browsers sturen Sec-Fetch-Site niet; dan valt Origin terug.
+  const origin = req.headers.get("Origin");
+  if (!origin) return false;
+  try {
+    return new URL(origin).host === new URL(req.url).host;
+  } catch {
+    return false;
+  }
+}
+
+const LEEST_ALLEEN = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/**
  * Voert een beheerhandeling uit achter de Access-controle. Bij een ontbrekend
  * of ongeldig token komt er een 403 en nooit inhoudelijke informatie.
  */
@@ -30,6 +55,10 @@ export async function metBeheerder(
   req: Request,
   handler: (identiteit: { email: string; sub: string }) => Promise<Response>
 ): Promise<Response> {
+  if (!LEEST_ALLEEN.has(req.method) && !zelfdeHerkomst(req)) {
+    return fout("Dit verzoek komt niet van de beheerpagina.", 403);
+  }
+
   try {
     const identiteit = await vereisBeheerder(req);
     return await handler(identiteit);
@@ -49,8 +78,49 @@ export async function metBeheerder(
 const DATUM = /^\d{4}-\d{2}-\d{2}$/;
 const TIJD = /^\d{2}:\d{2}$/;
 
+/**
+ * Leest een tekstveld van één regel. Stuurtekens en regeleindes gaan eruit:
+ * ze horen niet in een naam of adres, zien er raar uit in de PDF, en een
+ * regeleinde in een naam zou in het onderwerp van een e-mail terechtkomen.
+ */
 function tekst(waarde: unknown, max = 500): string {
-  return typeof waarde === "string" ? waarde.trim().slice(0, max) : "";
+  if (typeof waarde !== "string") return "";
+  return waarde
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
+}
+
+/** Meerregelig veld: regeleindes blijven, andere stuurtekens niet. */
+function tekstMeerRegels(waarde: unknown, max = 2000): string {
+  if (typeof waarde !== "string") return "";
+  return waarde
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .split("\n")
+    .map((r) => r.trim())
+    .join("\n")
+    .trim()
+    .slice(0, max);
+}
+
+/**
+ * Telefoonnummer. Filteren op toegestane tekens is niet genoeg: uit
+ * `06-1234 5678" onmouseover="alert(1)` blijven dan de cijfers van `alert(1)`
+ * staan en krijg je een verkeerd WhatsApp-nummer. We zoeken daarom de eerste
+ * reeks die er écht als een telefoonnummer uitziet en gooien de rest weg.
+ */
+function telefoon(waarde: unknown): string {
+  if (typeof waarde !== "string") return "";
+  const gevonden = waarde.match(/\+?\d[\d\s()-]{4,19}/);
+  if (!gevonden) return "";
+  // Randen zonder cijfer eraf: een losse "(" of "-" hoort er niet bij.
+  const nummer = gevonden[0].replace(/^[^\d+]+/, "").replace(/[^\d)]+$/, "").trim();
+  const cijfers = nummer.replace(/\D/g, "").length;
+  if (cijfers < 6 || cijfers > 15) return "";
+  return nummer.slice(0, 40);
 }
 
 export type Validatie =
@@ -69,7 +139,7 @@ export function leesContractInvoer(body: unknown): Validatie {
     klantNaam: tekst(b.klantNaam, 120),
     klantAdres: tekst(b.klantAdres, 160),
     klantPostcodePlaats: tekst(b.klantPostcodePlaats, 120),
-    klantTelefoon: tekst(b.klantTelefoon, 40),
+    klantTelefoon: telefoon(b.klantTelefoon),
     klantEmail: tekst(b.klantEmail, 160),
     plaatsingsadres: tekst(b.plaatsingsadres, 200),
 
@@ -87,7 +157,7 @@ export function leesContractInvoer(body: unknown): Validatie {
     zijwandExtraDagen: Math.max(0, Math.floor(Number(b.zijwandExtraDagen) || 0)),
     klinkers: Boolean(b.klinkers),
     transportCent: euroNaarCent(b.transportEuro ?? b.transportCent, "transportCent" in b),
-    afspraken: tekst(b.afspraken, 2000),
+    afspraken: tekstMeerRegels(b.afspraken, 2000),
   };
 
   if (!invoer.klantNaam) fouten.push("Vul de naam van de klant in.");

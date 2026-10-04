@@ -33,6 +33,7 @@ export async function GET(req: Request, { params }: { params: { token: string } 
   return new Response(bestand.body, {
     headers: {
       "content-type": "application/pdf",
+      "x-content-type-options": "nosniff",
       "content-disposition": `inline; filename="huurovereenkomst-smx-rental.pdf"`,
       "cache-control": "no-store, private",
       "x-robots-tag": "noindex, nofollow",

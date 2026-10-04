@@ -47,7 +47,9 @@ export async function verstuurMail(opdracht: MailOpdracht): Promise<MailResultaa
         from: AFZENDER,
         to: geldig,
         reply_to: ANTWOORD_NAAR,
-        subject: opdracht.onderwerp,
+        // Vangnet: een regeleinde in een onderwerp is de klassieke manier om
+        // extra mailheaders te smokkelen.
+        subject: opdracht.onderwerp.replace(/[\r\n]+/g, " ").slice(0, 200),
         html: opdracht.html,
         text: opdracht.tekst,
         attachments: opdracht.bijlagen?.map((b) => ({

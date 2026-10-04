@@ -263,13 +263,17 @@ export async function markeerHerinnerd(id: string): Promise<void> {
  * 'verstuurd'. Geeft terug of er echt iets veranderd is.
  */
 export async function markeerGeopend(id: string): Promise<boolean> {
-  const t = nu();
+  // Let op: `updated_at` blijft hier bewust ongemoeid. Dat veld geeft aan of
+  // de inhoud van het contract is gewijzigd, en daar controleert het
+  // ondertekenen op. Het openen van de pagina is geen inhoudswijziging; zou
+  // het veld hier wél bijwerken, dan zou de eerste ondertekening na openen
+  // altijd stranden op "dit contract is zojuist aangepast".
   const res = await db()
     .prepare(
-      `UPDATE contracts SET status = 'geopend', opened_at = ?, updated_at = ?
+      `UPDATE contracts SET status = 'geopend', opened_at = ?
        WHERE id = ? AND status = 'verstuurd'`
     )
-    .bind(t, t, id)
+    .bind(nu(), id)
     .run();
   return (res.meta?.changes ?? 0) > 0;
 }
