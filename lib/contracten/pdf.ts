@@ -13,6 +13,7 @@ import { datumLang } from "./formatteer";
 import { berekenOverzicht } from "./regels";
 import { productOmschrijving } from "./producten";
 import { VERHUURDER, voorwaardenVoor } from "./voorwaarden";
+import { logoBytes } from "./logo";
 import type { Contract } from "./types";
 
 const A4 = { breedte: 595.28, hoogte: 841.89 };
@@ -174,11 +175,32 @@ export async function maakContractPdf({
   const overzicht = berekenOverzicht(contract);
   const v = voorwaardenVoor(contract.voorwaardenVersie, contract);
 
-  /* ---- kop ---- */
-  schrijf(o, "Huurovereenkomst", { grootte: 20, vet: true });
-  o.y -= 2;
-  schrijf(o, productOmschrijving(contract).replace(/^de /, ""), { grootte: 11, kleur: GRIJS });
-  o.y -= 6;
+  /* ---- kop: logo links, titel en gegevens ernaast ---- */
+  const LOGO = 46;
+  let tekstX = MARGE;
+  try {
+    const logo = await doc.embedPng(logoBytes());
+    const schaal = LOGO / Math.max(logo.width, logo.height);
+    o.pagina.drawImage(logo, {
+      x: MARGE,
+      y: o.y - LOGO,
+      width: logo.width * schaal,
+      height: logo.height * schaal,
+    });
+    tekstX = MARGE + LOGO + 16;
+  } catch {
+    // Zonder logo gaat het contract gewoon door.
+  }
+
+  const kopTop = o.y;
+  o.pagina.drawText(leesbaar("Huurovereenkomst"), {
+    x: tekstX, y: kopTop - 17, size: 19, font: o.vet, color: INKT,
+  });
+  o.pagina.drawText(leesbaar(productOmschrijving(contract).replace(/^de /, "")), {
+    x: tekstX, y: kopTop - 31, size: 10.5, font: o.normaal, color: GRIJS,
+  });
+  o.y = Math.min(kopTop - LOGO, kopTop - 40) - 12;
+
   schrijf(
     o,
     `${VERHUURDER.naam} - ${VERHUURDER.adres}, ${VERHUURDER.postcodePlaats} - ` +

@@ -12,6 +12,9 @@ import type { Contract } from "./types";
 
 const ZAND = "#CBB897";
 const INKT = "#0A0A0A";
+/** Het logo wordt van de live site geladen; blokkeert een mailprogramma
+ *  afbeeldingen, dan blijft de alt-tekst over en klopt de kop nog steeds. */
+const LOGO = "https://smxrental.com/smx-logo-transparant.png";
 
 function omhulsel(titel: string, inhoud: string): string {
   return `<!doctype html>
@@ -21,8 +24,17 @@ function omhulsel(titel: string, inhoud: string): string {
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
              style="max-width:560px;background:#ffffff;border:1px solid #EAE2D1;border-radius:16px;overflow:hidden;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:${INKT};">
-        <tr><td style="background:${ZAND};padding:16px 24px;font-size:15px;font-weight:600;letter-spacing:.02em;">
-          SMX&nbsp;Rental <span style="font-weight:400;opacity:.7;">· Stretchtent verhuur</span>
+        <tr><td style="background:${ZAND};padding:14px 24px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="padding-right:12px;vertical-align:middle;">
+              <img src="${LOGO}" alt="SMX Rental" width="40" height="40"
+                   style="display:block;width:40px;height:auto;border:0;">
+            </td>
+            <td style="vertical-align:middle;font-size:15px;font-weight:600;letter-spacing:.02em;color:${INKT};">
+              SMX&nbsp;Rental<br>
+              <span style="font-weight:400;font-size:13px;opacity:.75;">Stretchtent verhuur · Neer</span>
+            </td>
+          </tr></table>
         </td></tr>
         <tr><td style="padding:28px 24px;font-size:16px;line-height:1.6;">${inhoud}</td></tr>
         <tr><td style="border-top:1px solid #EAE2D1;padding:16px 24px;font-size:13px;line-height:1.6;color:#5F5A52;">
