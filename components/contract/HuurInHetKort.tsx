@@ -6,7 +6,7 @@ import type { KlantContract } from "@/lib/contracten/types";
 
 export default function HuurInHetKort({ contract }: { contract: KlantContract }) {
   return (
-    <div className="rounded-2xl border border-ink/10 bg-sand-50 p-5 sm:p-7">
+    <div className="rounded-2xl border border-ink/10 bg-sand-50 p-4 sm:p-7">
       <dl className="space-y-3.5">
         <Regel term="Opbouw" waarde={`${datumLang(contract.opbouwDatum)}, ${contract.opbouwTijd} uur`} />
         <Regel term="Uw feest" waarde={datumLang(contract.feestDatum)} />
@@ -14,28 +14,30 @@ export default function HuurInHetKort({ contract }: { contract: KlantContract })
         <Regel term="Adres" waarde={contract.adres || "—"} />
       </dl>
 
-      <table className="mt-6 w-full border-t border-ink/15">
+      {/* table-fixed houdt de tabel binnen de breedte van een smal scherm; zonder
+          dat eist de inhoud meer ruimte dan er is en schuift de pagina opzij. */}
+      <table className="mt-6 w-full table-fixed border-t border-ink/15">
         <tbody>
           {contract.overzicht.regels.map((r) => (
             <tr key={r.omschrijving} className="border-b border-ink/10">
-              <td className="py-3.5 pr-4 align-top">
+              <td className="py-3.5 pr-2 align-top [overflow-wrap:anywhere] sm:pr-4">
                 <span className="font-semibold text-ink">{r.omschrijving}</span>
                 <br />
                 <span className="text-[17px] text-ink/60">{r.toelichting}</span>
               </td>
-              <td className="whitespace-nowrap py-3.5 text-right align-top font-semibold tabular-nums text-ink">
+              <td className="w-[88px] whitespace-nowrap py-3.5 text-right align-top font-semibold tabular-nums text-ink sm:w-[104px]">
                 {euro(r.bedragCent)}
               </td>
             </tr>
           ))}
           <tr>
-            <td className="py-4 pr-4 align-bottom">
+            <td className="py-4 pr-2 align-bottom [overflow-wrap:anywhere] sm:pr-4">
               <span className="text-[21px] font-semibold text-ink">Totaal</span>
               <br />
               <span className="text-[16px] text-ink/60">er wordt geen btw gerekend</span>
             </td>
-            <td className="whitespace-nowrap py-4 text-right align-bottom">
-              <span className="font-serif text-[30px] font-light tracking-tight text-ink">
+            <td className="w-[88px] whitespace-nowrap py-4 text-right align-bottom sm:w-[104px]">
+              <span className="font-serif text-[26px] font-light tracking-tight text-ink sm:text-[30px]">
                 {euro(contract.overzicht.totaalCent)}
               </span>
             </td>

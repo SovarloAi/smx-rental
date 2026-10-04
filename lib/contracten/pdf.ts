@@ -47,7 +47,12 @@ const VERVANG: Record<string, string> = {
 export function leesbaar(tekst: string): string {
   let uit = tekst;
   for (const [van, naar] of Object.entries(VERVANG)) uit = uit.split(van).join(naar);
-  return uit.replace(BUITEN_WINANSI, "");
+  // Eerst witruimte-stuurtekens naar een spatie. Zouden we ze gewoon
+  // weghalen, dan plakt "krap!\nContact" aan elkaar tot "krap!Contact".
+  uit = uit.replace(/[\t\r\n\v\f]/g, " ");
+  // Wat daarna nog buiten WinAnsi valt (emoji bijvoorbeeld) vervangen we door
+  // een spatie, om dezelfde reden.
+  return uit.replace(BUITEN_WINANSI, " ").replace(/ {2,}/g, " ");
 }
 
 type Opmaak = {
@@ -96,10 +101,19 @@ function schrijf(
   const breedte = opties.breedte ?? INHOUD;
   const hoogte = opties.regelhoogte ?? grootte * 1.45;
 
-  for (const regel of regels(tekst, font, grootte, breedte)) {
-    ruimte(o, hoogte);
-    o.pagina.drawText(regel, { x, y: o.y - grootte, size: grootte, font, color: opties.kleur ?? INKT });
-    o.y -= hoogte;
+  // Door de klant ingevoerde regeleindes blijven staan: elke regel wordt apart
+  // afgebroken, zodat de PDF toont wat er op de klantpagina stond.
+  for (const alinea of tekst.split(/\r?\n/)) {
+    if (!alinea.trim()) {
+      ruimte(o, hoogte);
+      o.y -= hoogte * 0.6;
+      continue;
+    }
+    for (const regel of regels(alinea, font, grootte, breedte)) {
+      ruimte(o, hoogte);
+      o.pagina.drawText(regel, { x, y: o.y - grootte, size: grootte, font, color: opties.kleur ?? INKT });
+      o.y -= hoogte;
+    }
   }
 }
 

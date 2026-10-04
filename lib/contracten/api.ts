@@ -75,7 +75,19 @@ export async function metBeheerder(
 /*  Validatie                                                         */
 /* ------------------------------------------------------------------ */
 
-const DATUM = /^\d{4}-\d{2}-\d{2}$/;
+const DATUM_VORM = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Bestaat deze datum echt? Alleen de vorm controleren is niet genoeg:
+ * "2027-02-31" heeft de juiste vorm, maar JavaScript rolt die stilzwijgend
+ * door naar 3 maart. Dan zou het contract een andere datum tonen dan er is
+ * ingevuld.
+ */
+function geldigeDatum(waarde: string): boolean {
+  if (!DATUM_VORM.test(waarde)) return false;
+  const d = new Date(`${waarde}T12:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === waarde;
+}
 const TIJD = /^\d{2}:\d{2}$/;
 
 /**
@@ -167,9 +179,9 @@ export function leesContractInvoer(body: unknown): Validatie {
   if (!invoer.tent && !invoer.shotjesbar) {
     fouten.push("Kies minstens één product: de stretchtent, de Shotjesbar, of allebei.");
   }
-  if (!DATUM.test(invoer.feestDatum)) fouten.push("Vul een geldige feestdatum in.");
-  if (!DATUM.test(invoer.opbouwDatum)) fouten.push("Vul een geldige opbouwdatum in.");
-  if (!DATUM.test(invoer.afbouwDatum)) fouten.push("Vul een geldige afbouwdatum in.");
+  if (!geldigeDatum(invoer.feestDatum)) fouten.push("Vul een geldige feestdatum in.");
+  if (!geldigeDatum(invoer.opbouwDatum)) fouten.push("Vul een geldige opbouwdatum in.");
+  if (!geldigeDatum(invoer.afbouwDatum)) fouten.push("Vul een geldige afbouwdatum in.");
   if (!TIJD.test(invoer.opbouwTijd)) fouten.push("Opbouwtijd moet als uu:mm.");
   if (!TIJD.test(invoer.afbouwTijd)) fouten.push("Afbouwtijd moet als uu:mm.");
   if (invoer.afbouwDatum && invoer.opbouwDatum && invoer.afbouwDatum < invoer.opbouwDatum) {
