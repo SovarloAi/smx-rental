@@ -15,7 +15,7 @@
  */
 
 import { TARIEVEN, MAX_ZIJWANDEN, euro } from "@/lib/prijzen";
-import type { ContractInvoer, Prijsoverzicht, Prijsregel } from "./types";
+import type { Contract, ContractInvoer, Prijsoverzicht, Prijsregel } from "./types";
 
 type Productvelden = Pick<
   ContractInvoer,
@@ -139,4 +139,22 @@ export function berekenOverzicht(invoer: ContractInvoer): Prijsoverzicht {
     regels,
     totaalCent: regels.reduce((som, r) => som + r.bedragCent, 0),
   };
+}
+
+/**
+ * Het prijsoverzicht dat voor dít contract geldt.
+ *
+ * Staan er vastgelegde regels bij het contract, dan gelden die — ook als de
+ * tarieven inmiddels veranderd zijn. Dat is het hele punt: wat de klant heeft
+ * gezien en ondertekend mag later niet verschuiven. Alleen contracten van vóór
+ * die vastlegging worden nog herberekend.
+ */
+export function overzichtVan(contract: Contract): Prijsoverzicht {
+  if (contract.prijsregels && contract.prijsregels.length) {
+    return {
+      regels: contract.prijsregels,
+      totaalCent: contract.prijsregels.reduce((som, r) => som + r.bedragCent, 0),
+    };
+  }
+  return berekenOverzicht(contract);
 }

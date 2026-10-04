@@ -1,7 +1,7 @@
 /** Beheer-API: lijst van alle contracten + nieuw contract aanmaken. */
 
 import { alleContracten, logEvent, maakContract } from "@/lib/contracten/db";
-import { berekenOverzicht } from "@/lib/contracten/regels";
+import { overzichtVan } from "@/lib/contracten/regels";
 import { json, fout, metBeheerder, leesContractInvoer } from "@/lib/contracten/api";
 
 export const runtime = "edge";
@@ -26,6 +26,6 @@ export async function POST(req: Request) {
       userAgent: req.headers.get("User-Agent"),
     });
 
-    return json({ contract, overzicht: berekenOverzicht(contract) }, 201);
+    return json({ contract, overzicht: overzichtVan(contract) }, 201);
   });
 }

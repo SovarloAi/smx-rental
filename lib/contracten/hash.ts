@@ -8,14 +8,14 @@
  */
 
 import { voorwaardenVoor } from "./voorwaarden";
-import { berekenOverzicht } from "./regels";
+import { overzichtVan } from "./regels";
 import type { Contract } from "./types";
 
 export function canoniekePayload(c: Contract): string {
   // Alleen de artikelen die bij dít contract horen: dat is wat de klant
   // gelezen en ondertekend heeft.
   const v = voorwaardenVoor(c.voorwaardenVersie, c);
-  const overzicht = berekenOverzicht(c);
+  const overzicht = overzichtVan(c);
 
   return JSON.stringify({
     klant: {

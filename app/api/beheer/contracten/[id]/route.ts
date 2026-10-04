@@ -8,7 +8,7 @@ import {
   wijzigContract,
 } from "@/lib/contracten/db";
 import { verwijderMapVanContract } from "@/lib/contracten/r2";
-import { berekenOverzicht } from "@/lib/contracten/regels";
+import { overzichtVan } from "@/lib/contracten/regels";
 import { json, fout, metBeheerder, leesContractInvoer } from "@/lib/contracten/api";
 
 export const runtime = "edge";
@@ -22,7 +22,7 @@ export async function GET(req: Request, { params }: Ctx) {
     if (!contract) return fout("Contract niet gevonden.", 404);
     return json({
       contract,
-      overzicht: berekenOverzicht(contract),
+      overzicht: overzichtVan(contract),
       events: await eventsVan(contract.id),
     });
   });
@@ -46,7 +46,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
       userAgent: req.headers.get("User-Agent"),
     });
 
-    return json({ contract, overzicht: berekenOverzicht(contract) });
+    return json({ contract, overzicht: overzichtVan(contract) });
   });
 }
 

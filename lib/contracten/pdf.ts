@@ -10,7 +10,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { euro } from "@/lib/prijzen";
 import { datumLang } from "./formatteer";
-import { berekenOverzicht } from "./regels";
+import { overzichtVan } from "./regels";
 import { productOmschrijving } from "./producten";
 import { VERHUURDER, voorwaardenVoor } from "./voorwaarden";
 import { logoBytes } from "./logo";
@@ -172,7 +172,7 @@ export async function maakContractPdf({
     vet: await doc.embedFont(StandardFonts.HelveticaBold),
   };
 
-  const overzicht = berekenOverzicht(contract);
+  const overzicht = overzichtVan(contract);
   const v = voorwaardenVoor(contract.voorwaardenVersie, contract);
 
   /* ---- kop: logo links, titel en gegevens ernaast ---- */

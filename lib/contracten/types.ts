@@ -75,6 +75,13 @@ export type Contract = ContractInvoer & {
   remindedAt: string | null;
 
   totaalCent: number;
+  /**
+   * De prijsregels zoals vastgelegd bij aanmaken of wijzigen. Hierdoor blijft
+   * een contract tonen wat er is afgesproken, ook als de tarieven later
+   * veranderen. Oudere contracten zonder vastgelegde regels vallen terug op
+   * een herberekening.
+   */
+  prijsregels: Prijsregel[] | null;
   voorwaardenVersie: VoorwaardenVersie;
 
   signerNaam: string | null;

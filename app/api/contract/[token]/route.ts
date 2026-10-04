@@ -7,7 +7,7 @@
  */
 
 import { contractOpToken, logEvent, markeerGeopend } from "@/lib/contracten/db";
-import { berekenOverzicht } from "@/lib/contracten/regels";
+import { overzichtVan } from "@/lib/contracten/regels";
 import { voorwaardenVoor } from "@/lib/contracten/voorwaarden";
 import { geldigTokenFormaat } from "@/lib/contracten/token";
 import { LIMIETEN, binnenLimiet, bezoekerIp } from "@/lib/contracten/ratelimit";
@@ -57,7 +57,7 @@ export async function GET(req: Request, { params }: { params: { token: string } 
     afbouwDatum: contract.afbouwDatum,
     afbouwTijd: contract.afbouwTijd,
     afspraken: contract.afspraken,
-    overzicht: berekenOverzicht(contract),
+    overzicht: overzichtVan(contract),
     voorwaardenVersie: contract.voorwaardenVersie,
     signerNaam: contract.signerNaam,
     signerPlaats: contract.signerPlaats,

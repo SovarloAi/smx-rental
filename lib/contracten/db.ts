@@ -15,6 +15,7 @@ import type {
   ContractEvent,
   ContractInvoer,
   EventType,
+  Prijsregel,
   Status,
 } from "./types";
 
@@ -24,7 +25,7 @@ const KOLOMMEN = `
   klant_telefoon, klant_email, plaatsingsadres, feest_datum, opbouw_datum,
   opbouw_tijd, afbouw_datum, afbouw_tijd, tent, shotjesbar, extra_dagen,
   verlichting, zijwanden, zijwand_extra_dagen, klinkers, transport_cent,
-  afspraken, totaal_cent,
+  afspraken, totaal_cent, regels_json,
   voorwaarden_versie, signer_naam, signer_plaats, signature_key, signed_ip,
   signed_user_agent, document_hash, op_papier, papier_key, pdf_key, gezien
 `;
@@ -73,6 +74,7 @@ function naarContract(r: Rij): Contract {
     afspraken: s("afspraken"),
 
     totaalCent: n("totaal_cent"),
+    prijsregels: leesRegels(r["regels_json"]),
     voorwaardenVersie: (s("voorwaarden_versie") || HUIDIGE_VERSIE) as Contract["voorwaardenVersie"],
 
     signerNaam: of("signer_naam"),
@@ -90,6 +92,22 @@ function naarContract(r: Rij): Contract {
 }
 
 const nu = () => new Date().toISOString();
+
+/** Leest de vastgelegde prijsregels; bij onleesbare inhoud liever niets dan onzin. */
+function leesRegels(waarde: unknown): Prijsregel[] | null {
+  if (typeof waarde !== "string" || !waarde) return null;
+  try {
+    const gelezen = JSON.parse(waarde);
+    if (!Array.isArray(gelezen)) return null;
+    return gelezen.filter(
+      (r) =>
+        r && typeof r.omschrijving === "string" &&
+        typeof r.toelichting === "string" && typeof r.bedragCent === "number"
+    );
+  } catch {
+    return null;
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /*  Lezen                                                             */
@@ -127,7 +145,7 @@ export async function maakContract(invoer: ContractInvoer): Promise<Contract> {
   const token = nieuwToken();
   const t = nu();
   const norm = normaliseer(invoer);
-  const totaal = berekenOverzicht(invoer).totaalCent;
+  const overzicht = berekenOverzicht(invoer);
 
   await db()
     .prepare(
@@ -136,8 +154,9 @@ export async function maakContract(invoer: ContractInvoer): Promise<Contract> {
         klant_naam, klant_adres, klant_postcode_plaats, klant_telefoon, klant_email,
         plaatsingsadres, feest_datum, opbouw_datum, opbouw_tijd, afbouw_datum, afbouw_tijd,
         tent, shotjesbar, extra_dagen, verlichting, zijwanden, zijwand_extra_dagen,
-        klinkers, transport_cent, afspraken, totaal_cent, voorwaarden_versie, gezien
-      ) VALUES (?,?,'concept',?,?, ?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,1)`
+        klinkers, transport_cent, afspraken, totaal_cent, regels_json,
+        voorwaarden_versie, gezien
+      ) VALUES (?,?,'concept',?,?, ?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?,1)`
     )
     .bind(
       id, token, t, t,
@@ -148,7 +167,8 @@ export async function maakContract(invoer: ContractInvoer): Promise<Contract> {
       norm.tent ? 1 : 0, norm.shotjesbar ? 1 : 0, norm.extraDagen,
       norm.verlichting ? 1 : 0, norm.zijwanden, norm.zijwandExtraDagen,
       norm.klinkers ? 1 : 0, norm.transportCent,
-      invoer.afspraken, totaal, HUIDIGE_VERSIE
+      invoer.afspraken, overzicht.totaalCent, JSON.stringify(overzicht.regels),
+      HUIDIGE_VERSIE
     )
     .run();
 
@@ -172,7 +192,7 @@ export async function wijzigContract(
   }
 
   const norm = normaliseer(invoer);
-  const totaal = berekenOverzicht(invoer).totaalCent;
+  const overzicht = berekenOverzicht(invoer);
 
   await db()
     .prepare(
@@ -182,7 +202,7 @@ export async function wijzigContract(
         opbouw_datum = ?, opbouw_tijd = ?, afbouw_datum = ?, afbouw_tijd = ?,
         tent = ?, shotjesbar = ?, extra_dagen = ?, verlichting = ?, zijwanden = ?,
         zijwand_extra_dagen = ?, klinkers = ?, transport_cent = ?,
-        afspraken = ?, totaal_cent = ?
+        afspraken = ?, totaal_cent = ?, regels_json = ?
        WHERE id = ?`
     )
     .bind(
@@ -191,7 +211,8 @@ export async function wijzigContract(
       invoer.opbouwDatum, invoer.opbouwTijd, invoer.afbouwDatum, invoer.afbouwTijd,
       norm.tent ? 1 : 0, norm.shotjesbar ? 1 : 0, norm.extraDagen,
       norm.verlichting ? 1 : 0, norm.zijwanden, norm.zijwandExtraDagen,
-      norm.klinkers ? 1 : 0, norm.transportCent, invoer.afspraken, totaal,
+      norm.klinkers ? 1 : 0, norm.transportCent, invoer.afspraken,
+      overzicht.totaalCent, JSON.stringify(overzicht.regels),
       id
     )
     .run();
