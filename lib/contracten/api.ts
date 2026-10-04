@@ -4,6 +4,7 @@
  */
 
 import { AccessFout, vereisBeheerder } from "./access";
+import { alleenPdfTekens } from "./tekens";
 import type { ContractInvoer } from "./types";
 
 export function json(data: unknown, status = 200): Response {
@@ -97,7 +98,7 @@ const TIJD = /^\d{2}:\d{2}$/;
  */
 function tekst(waarde: unknown, max = 500): string {
   if (typeof waarde !== "string") return "";
-  return waarde
+  return alleenPdfTekens(waarde)
     .replace(/[\u0000-\u001f\u007f]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
@@ -107,7 +108,7 @@ function tekst(waarde: unknown, max = 500): string {
 /** Meerregelig veld: regeleindes blijven, andere stuurtekens niet. */
 function tekstMeerRegels(waarde: unknown, max = 2000): string {
   if (typeof waarde !== "string") return "";
-  return waarde
+  return alleenPdfTekens(waarde)
     .replace(/\r\n?/g, "\n")
     .replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, " ")
     .replace(/[ \t]+/g, " ")

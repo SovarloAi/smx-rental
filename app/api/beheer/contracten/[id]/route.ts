@@ -41,10 +41,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     if (!gelezen.ok) return fout(gelezen.fouten.join(" "), 422);
 
     const contract = await wijzigContract(params.id, gelezen.invoer);
-    await logEvent(contract.id, "gewijzigd", {
-      ip: req.headers.get("CF-Connecting-IP"),
-      userAgent: req.headers.get("User-Agent"),
-    });
+    await logEvent(contract.id, "gewijzigd");
 
     return json({ contract, overzicht: overzichtVan(contract) });
   });

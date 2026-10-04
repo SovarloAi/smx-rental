@@ -14,6 +14,7 @@ import { overzichtVan } from "./regels";
 import { productOmschrijving } from "./producten";
 import { VERHUURDER, voorwaardenVoor } from "./voorwaarden";
 import { logoBytes } from "./logo";
+import { BUITEN_WINANSI } from "./tekens";
 import type { Contract } from "./types";
 
 const A4 = { breedte: 595.28, hoogte: 841.89 };
@@ -24,14 +25,6 @@ const INKT = rgb(0.04, 0.04, 0.04);
 const GRIJS = rgb(0.42, 0.4, 0.37);
 const LIJN = rgb(0.85, 0.83, 0.79);
 
-/**
- * Helvetica gebruikt WinAnsi: dat is Latin-1 plus een handvol typografische
- * tekens (€, – , —, ‘ ’ “ ”, …, •, ™). Die mogen dus gewoon blijven staan.
- * Alleen wat daarbuiten valt vervangen we, anders laat één raar teken het hele
- * contract mislukken.
- */
-const WINANSI_EXTRA = "\u20ac\u201a\u0192\u201e\u2026\u2020\u2021\u02c6\u2030\u0160\u2039\u0152\u017d\u2018\u2019\u201c\u201d\u2022\u2013\u2014\u02dc\u2122\u0161\u203a\u0153\u017e\u0178";
-const BUITEN_WINANSI = new RegExp(`[^\\u0020-\\u007e\\u00a0-\\u00ff${WINANSI_EXTRA}]`, "g");
 
 /** Vervangingen voor tekens die buiten WinAnsi vallen maar wél kunnen voorkomen. */
 const VERVANG: Record<string, string> = {

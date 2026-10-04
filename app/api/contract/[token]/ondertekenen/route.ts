@@ -19,6 +19,7 @@ import { voorwaardenVoor } from "@/lib/contracten/voorwaarden";
 import { geldigTokenFormaat } from "@/lib/contracten/token";
 import { LIMIETEN, binnenLimiet, bezoekerIp } from "@/lib/contracten/ratelimit";
 import { json, fout } from "@/lib/contracten/api";
+import { alleenPdfTekens } from "@/lib/contracten/tekens";
 import { verstuurMail } from "@/lib/contracten/mail";
 import { mailOndertekend } from "@/lib/contracten/mails";
 import { basisUrl } from "@/lib/contracten/platform";
@@ -74,7 +75,11 @@ export async function POST(req: Request, { params }: { params: { token: string }
 
   // Dezelfde controles als op de pagina, maar dan serverkant.
   const ontbreekt: string[] = [];
-  const schoon = (t: string) => t.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+  // Zelfde filter als in het beheerformulier: emoji en andere tekens die de
+  // PDF niet kan tekenen gaan er bij het opslaan uit, zodat de ondertekende
+  // PDF exact gelijk is aan wat de klant op zijn scherm zag.
+  const schoon = (t: string) =>
+    alleenPdfTekens(t).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
   const naam = schoon(body.naam ?? "").slice(0, 120);
   const plaats = schoon(body.plaats ?? "").slice(0, 120);
   const checks = voorwaardenVoor(contract.voorwaardenVersie, contract).checks;

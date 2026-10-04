@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { TARIEVEN } from "@/lib/prijzen";
 import { berekenOverzicht } from "@/lib/contracten/regels";
 import { transportVoorProducten, type TransportResult } from "@/lib/transport";
-import { euro, schuifDatum } from "@/lib/contracten/formatteer";
+import { euro, schuifDatum, dagenTot } from "@/lib/contracten/formatteer";
 import { api, ApiFout, type FormulierInvoer } from "@/lib/contracten/client";
 import type { Contract } from "@/lib/contracten/types";
 import { Blok, Knop, KnopLink, Melding, StatusLabel, Veld, invoerKlasse } from "./ui";
@@ -165,6 +165,26 @@ export default function ContractFormulier({ bestaand }: { bestaand?: Contract })
 
   const isAuto = (k: string) => auto.has(k);
 
+  const hoofdletter = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
+  /**
+   * Datums in het verleden blokkeren we niet — een contract achteraf
+   * vastleggen moet kunnen — maar een typefout in het jaar is zo gemaakt.
+   * Daarom een waarschuwing bij de datums zelf.
+   */
+  const datumsInHetVerleden = (
+    [
+      ["de feestdatum", f.feestDatum],
+      ["de opbouwdatum", f.opbouwDatum || schuifDatum(f.feestDatum, -1)],
+      ["de afbouwdatum", f.afbouwDatum || schuifDatum(f.feestDatum, 1 + (Number(f.extraDagen) || 0))],
+    ] as const
+  )
+    .filter(([, datum]) => {
+      const dagen = dagenTot(datum);
+      return dagen !== null && dagen < 0;
+    })
+    .map(([naam]) => naam);
+
   // De foutmelding midden in beeld zetten; onderaan zou hij deels achter de
   // totaalbalk vallen.
   useEffect(() => {
@@ -291,6 +311,17 @@ export default function ContractFormulier({ bestaand }: { bestaand?: Contract })
               onChange={(e) => zet("afbouwTijd", e.target.value)} />
           </Veld>
         </div>
+        {datumsInHetVerleden.length > 0 && (
+          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900 ring-1 ring-amber-200">
+            <strong className="font-semibold">Let op:</strong>{" "}
+            {datumsInHetVerleden.length === 1
+              ? `${hoofdletter(datumsInHetVerleden[0])} ligt in het verleden.`
+              : `${hoofdletter(datumsInHetVerleden.slice(0, -1).join(", "))} en ${
+                  datumsInHetVerleden.slice(-1)[0]
+                } liggen in het verleden.`}{" "}
+            Klopt het jaar? U kunt gewoon doorgaan als dit de bedoeling is.
+          </p>
+        )}
         <p className="mt-4 text-sm text-ink/55">
           Vul eerst de feestdatum in: opbouw (dag ervoor) en afbouw (dag erna)
           worden dan vanzelf gezet. Daarna kunt u ze nog aanpassen.

@@ -349,16 +349,35 @@ export async function verwijderContract(id: string): Promise<void> {
 /*  Audit-log                                                         */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Bij welke gebeurtenissen leggen we IP en apparaat vast? Alleen bij de twee
+ * handelingen van de klant: daar dienen ze als bewijs dat híj het contract
+ * opende en ondertekende. Bij Sjors' eigen handelingen voegen ze niets toe —
+ * die staan al achter Cloudflare Access — dus bewaren we ze daar niet.
+ */
+const HERKOMST_VASTLEGGEN: ReadonlySet<EventType> = new Set<EventType>([
+  "geopend",
+  "ondertekend",
+]);
+
 export async function logEvent(
   contractId: string,
   type: EventType,
   herkomst?: { ip?: string | null; userAgent?: string | null }
 ): Promise<void> {
+  const bewaren = HERKOMST_VASTLEGGEN.has(type);
   await db()
     .prepare(
       `INSERT INTO events (id, contract_id, type, at, ip, user_agent) VALUES (?,?,?,?,?,?)`
     )
-    .bind(nieuwId(), contractId, type, nu(), herkomst?.ip ?? null, herkomst?.userAgent ?? null)
+    .bind(
+      nieuwId(),
+      contractId,
+      type,
+      nu(),
+      bewaren ? herkomst?.ip ?? null : null,
+      bewaren ? herkomst?.userAgent ?? null : null
+    )
     .run();
 }
 

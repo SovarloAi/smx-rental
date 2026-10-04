@@ -21,10 +21,7 @@ export async function POST(req: Request) {
     if (!gelezen.ok) return fout(gelezen.fouten.join(" "), 422);
 
     const contract = await maakContract(gelezen.invoer);
-    await logEvent(contract.id, "aangemaakt", {
-      ip: req.headers.get("CF-Connecting-IP"),
-      userAgent: req.headers.get("User-Agent"),
-    });
+    await logEvent(contract.id, "aangemaakt");
 
     return json({ contract, overzicht: overzichtVan(contract) }, 201);
   });

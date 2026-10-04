@@ -60,8 +60,9 @@ export async function verstuurMail(opdracht: MailOpdracht): Promise<MailResultaa
     });
 
     if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      console.error("Resend gaf een fout:", res.status, body.slice(0, 300));
+      // Alleen de statuscode loggen: het antwoord van Resend bevat het
+      // e-mailadres van de klant en dat hoort niet in een logbestand.
+      console.error("Resend gaf een fout:", res.status);
       return { ok: false, reden: `Resend gaf status ${res.status}` };
     }
 

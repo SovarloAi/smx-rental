@@ -64,10 +64,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const gelukt = await markeerGoedgekeurd(contract.id, pdfKey);
     if (!gelukt) return fout("De status kon niet worden bijgewerkt.", 409);
 
-    await logEvent(contract.id, "goedgekeurd", {
-      ip: req.headers.get("CF-Connecting-IP"),
-      userAgent: req.headers.get("User-Agent"),
-    });
+    await logEvent(contract.id, "goedgekeurd");
 
     const bijgewerkt = (await contractOpId(contract.id))!;
     const link = definitiefLink(contract.token, basisUrl(req));

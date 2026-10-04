@@ -156,7 +156,8 @@ lib/transport.ts                   bestaande transportberekening, her-exporteert
 lib/contracten/
   types.ts        datamodel
   regels.ts       prijsregels + totaal (server-side)
-  voorwaarden/    v1.ts (13 artikelen, leidend) + register per versie
+  voorwaarden/    v1 t/m v4 + register per versie; nieuwe contracten krijgen v4
+  tekens.ts       welke tekens een contract mag bevatten (emoji eruit bij opslaan)
   db.ts           alle SQL
   r2.ts           bestandsopslag
   platform.ts     bindings
@@ -165,7 +166,7 @@ lib/contracten/
   token.ts        32-byte klanttokens
   hash.ts         SHA-256 over de contractinhoud
   berichten.ts    WhatsApp-teksten en -links
-  api.ts          JSON-helpers, Access-guard, validatie
+  api.ts          JSON-helpers, Access-guard, CSRF-controle, validatie
 app/api/beheer/**     beheer-API (achter Access)
 app/api/contract/**   klant-API (token)
 migrations/           D1-migraties
@@ -219,10 +220,20 @@ npx wrangler d1 export smx-contracten --config wrangler.dev.toml --remote \
 | Waar | Welke gegevens | Waarom |
 | --- | --- | --- |
 | **D1** `contracts` (regio WEUR) | naam, adres, postcode en plaats, telefoon, e-mail, plaatsingsadres, de gegevens van de ondertekening (naam, plaats, IP, apparaat) | uitvoeren van de overeenkomst en bewijs van ondertekening |
-| **D1** `events` | per gebeurtenis: tijdstip, IP en apparaat | aantoonbaar maken wanneer er is verstuurd, geopend en getekend |
+| **D1** `events` | per gebeurtenis het tijdstip; IP en apparaat **alleen** bij "geopend" en "ondertekend" | aantoonbaar maken wanneer er is verstuurd, geopend en getekend. Bij de eigen handelingen van de verhuurder voegen IP en apparaat niets toe, dus die worden daar niet bewaard (`HERKOMST_VASTLEGGEN` in `lib/contracten/db.ts`) |
 | **R2** (EU-jurisdictie) | handtekening van de klant (PNG), de definitieve PDF, eventueel een foto van een papieren contract | het contract zelf |
 | **Resend** | e-mailadres, naam en de PDF als bijlage | versturen van het contract |
 | **Anthropic** | alleen wat op een geüploade schermafbeelding staat | het formulier vooraf invullen; de afbeelding wordt niet opgeslagen |
 | **Cloudflare-logs** | standaard verkeerslogs | hosting |
 
-Bewaartermijn: er wordt op dit moment **niets automatisch verwijderd**.
+Bewaartermijn: de voorwaarden (v4, artikel Privacy) beloven de huurder dat een
+overeenkomst **zeven jaar** wordt bewaard — de fiscale bewaarplicht — en daarna
+wordt verwijderd. Er verwijdert op dit moment **niets automatisch**: dat is
+handwerk via de knop "Verwijderen" bij een contract, of met een SQL-opdracht op
+D1. Vanaf 2033 hoort daar dus één keer per jaar een opruimronde bij, of een
+script dat dat doet.
+
+De voorwaarden noemen ook de verwerkers met naam: Cloudflare (hosting en
+opslag), Resend (e-mail) en Anthropic (het uitlezen van een schermafbeelding).
+Komt daar een dienst bij, dan hoort er een nieuwe voorwaardenversie bij —
+bestaande contracten blijven aan hun eigen versie hangen.

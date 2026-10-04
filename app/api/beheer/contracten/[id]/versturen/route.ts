@@ -20,10 +20,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     await markeerVerstuurd(contract.id);
-    await logEvent(contract.id, "verstuurd", {
-      ip: req.headers.get("CF-Connecting-IP"),
-      userAgent: req.headers.get("User-Agent"),
-    });
+    await logEvent(contract.id, "verstuurd");
 
     const bijgewerkt = await contractOpId(params.id);
     return json({

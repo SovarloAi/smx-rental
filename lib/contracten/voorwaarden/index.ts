@@ -9,10 +9,11 @@
 import * as v1 from "./v1";
 import * as v2 from "./v2";
 import * as v3 from "./v3";
+import * as v4 from "./v4";
 import type { Artikel, Doelgroep } from "./v3";
 
 export type { Artikel, Doelgroep };
-export type VoorwaardenVersie = "v1" | "v2" | "v3";
+export type VoorwaardenVersie = "v1" | "v2" | "v3" | "v4";
 
 export type Voorwaarden = {
   versie: VoorwaardenVersie;
@@ -31,10 +32,11 @@ const REGISTER: Record<VoorwaardenVersie, Voorwaarden> = {
   v1: v1Vertaald,
   v2: { versie: "v2", artikelen: v2.ARTIKELEN, checks: v2.CHECKS },
   v3: { versie: "v3", artikelen: v3.ARTIKELEN, checks: v3.CHECKS },
+  v4: { versie: "v4", artikelen: v4.ARTIKELEN, checks: v4.CHECKS },
 };
 
 /** De versie die nieuwe contracten krijgen. */
-export const HUIDIGE_VERSIE: VoorwaardenVersie = "v3";
+export const HUIDIGE_VERSIE: VoorwaardenVersie = "v4";
 
 export function voorwaarden(versie: string): Voorwaarden {
   const gevonden = REGISTER[versie as VoorwaardenVersie];
