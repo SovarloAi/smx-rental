@@ -15,11 +15,19 @@ import type { Artikel } from "@/lib/contracten/voorwaarden";
 import type { KlantContract } from "@/lib/contracten/types";
 import Handtekeningvak, { type HandtekeningHandle } from "./Handtekeningvak";
 import HuurInHetKort from "./HuurInHetKort";
-import Voorwaarden from "./Voorwaarden";
+import VoorwaardenUitklapbaar from "./VoorwaardenUitklapbaar";
 
 type Gegevens = {
   contract: KlantContract;
   voorwaarden: { versie: string; artikelen: Artikel[]; checks: string[] };
+};
+
+/** Een melding onder het formulier: of er ontbreekt iets, of het versturen ging mis. */
+type Melding = {
+  soort: "invoer" | "versturen";
+  regels: string[];
+  /** Bij een verouderd contract verversen we zelf; dan geen knop "Opnieuw proberen". */
+  wachtOpVerversen?: boolean;
 };
 
 export default function KlantPagina({ token }: { token: string }) {
@@ -119,19 +127,31 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
   );
   const [akkoord, setAkkoord] = useState<boolean[]>(voorwaarden.checks.map(() => false));
   const [heeftHandtekening, setHeeftHandtekening] = useState(false);
-  const [fouten, setFouten] = useState<string[]>([]);
+  // Twee soorten meldingen, want ze vragen iets anders van de klant. "invoer"
+  // betekent: er ontbreekt nog iets op het formulier. "versturen" betekent:
+  // alles was ingevuld, maar het wegsturen lukte niet — dan helpt alleen het
+  // nog eens proberen.
+  const [melding, setMelding] = useState<Melding | null>(null);
   const [bezig, setBezig] = useState(false);
   const [klaar, setKlaar] = useState<KlantContract | null>(null);
 
   useEffect(() => {
-    if (fouten.length) foutRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [fouten]);
+    if (melding) foutRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [melding]);
 
-  // Zodra de klant iets aanpast, halen we de foutmelding weg. Anders blijft er
-  // rood op het scherm staan over dingen die net zijn ingevuld.
+  // Zodra de klant iets aanpast, halen we de invoermelding weg. Anders blijft
+  // er rood op het scherm staan over dingen die net zijn ingevuld. Een
+  // verzendfout blijft wél staan: daar verandert het invullen niets aan.
   useEffect(() => {
-    setFouten((f) => (f.length ? [] : f));
+    setMelding((m) => (m?.soort === "invoer" ? null : m));
   }, [akkoord, naam, plaats, heeftHandtekening]);
+
+  // Na het versturen vervangt de bevestiging het formulier. De klant staat dan
+  // onderaan de pagina, dus zonder deze sprong zou hij de bevestiging niet
+  // zien en denken dat er niets gebeurd is.
+  useEffect(() => {
+    if (klaar) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [klaar]);
 
   if (klaar) return <Bedankt contract={klaar} />;
 
@@ -141,9 +161,9 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
     if (!naam.trim()) mist.push("Vul uw volledige naam in.");
     if (!plaats.trim()) mist.push("Vul de plaats in.");
     if (pad.current?.leeg() !== false) mist.push("Zet uw handtekening in het vak.");
-    if (mist.length) { setFouten(mist); return; }
+    if (mist.length) { setMelding({ soort: "invoer", regels: mist }); return; }
 
-    setFouten([]);
+    setMelding(null);
     setBezig(true);
     try {
       const res = await fetch(`/api/contract/${token}/ondertekenen`, {
@@ -162,20 +182,47 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
       // Het contract is tussendoor gewijzigd: opnieuw laden, zodat de klant de
       // actuele gegevens ziet voordat hij tekent.
       if (res.status === 409 && antwoord?.verouderd) {
-        setFouten([antwoord.fout ?? "Dit contract is zojuist aangepast."]);
+        setMelding({
+          soort: "versturen",
+          regels: [antwoord.fout ?? "Dit contract is zojuist aangepast."],
+          wachtOpVerversen: true,
+        });
         setBezig(false);
         setTimeout(() => window.location.reload(), 2500);
         return;
       }
 
       if (!res.ok) {
-        setFouten(antwoord?.fouten ?? [antwoord?.fout ?? "Het ondertekenen lukte niet. Probeer het opnieuw."]);
+        // Een lijstje met ontbrekende velden hoort bij het formulier; al het
+        // andere is iets wat aan onze kant misging.
+        setMelding(
+          antwoord?.fouten
+            ? { soort: "invoer", regels: antwoord.fouten }
+            : {
+                soort: "versturen",
+                regels: [
+                  antwoord?.fout ??
+                    "Het versturen lukte niet. Dat ligt niet aan u — probeer het nog een keer.",
+                ],
+              }
+        );
         setBezig(false);
         return;
       }
-      setKlaar({ ...contract, status: "ondertekend", signerNaam: naam.trim(), signedAt: new Date().toISOString() });
+      setKlaar({
+        ...contract,
+        status: "ondertekend",
+        signerNaam: naam.trim(),
+        // De klant kan zijn e-mailadres net hebben gecorrigeerd; de bevestiging
+        // moet het adres noemen waar de PDF straks echt heen gaat.
+        klantEmail: email.trim(),
+        signedAt: new Date().toISOString(),
+      });
     } catch {
-      setFouten(["Er is geen verbinding. Controleer uw internet en probeer het opnieuw."]);
+      setMelding({
+        soort: "versturen",
+        regels: ["Er is even geen verbinding. Controleer uw internet en probeer het opnieuw."],
+      });
       setBezig(false);
     }
   };
@@ -216,12 +263,15 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
       </section>
 
       <section className="mt-10">
-        <h2 className="klant-h2">Huurvoorwaarden</h2>
-        <div className="mt-4"><Voorwaarden artikelen={voorwaarden.artikelen} /></div>
-      </section>
-
-      <section className="mt-10">
         <h2 className="klant-h2">Ondertekenen</h2>
+
+        <p className="mt-3 text-ink/70">
+          Bij deze huur horen onze algemene voorwaarden. U kunt ze hieronder
+          openen en rustig doorlezen.
+        </p>
+        <div className="mt-3">
+          <VoorwaardenUitklapbaar artikelen={voorwaarden.artikelen} />
+        </div>
 
         <div className="mt-5 space-y-3">
           {voorwaarden.checks.map((tekst, i) => (
@@ -256,19 +306,38 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
         <Handtekeningvak ref={pad} onVerandering={setHeeftHandtekening} />
 
         <div ref={foutRef} className="scroll-mt-10">
-          {fouten.length > 0 && (
+          {melding?.soort === "invoer" && (
             <div role="alert" className="mt-7 rounded-xl border-2 border-red-300 bg-red-50 p-5">
               <p className="text-[19px] font-semibold text-red-900">Nog niet alles is ingevuld:</p>
               <ul className="mt-2 list-disc space-y-1.5 pl-6 text-[18px] leading-relaxed text-red-900">
-                {fouten.map((f) => <li key={f}>{f}</li>)}
+                {melding.regels.map((f) => <li key={f}>{f}</li>)}
               </ul>
+            </div>
+          )}
+
+          {melding?.soort === "versturen" && (
+            <div role="alert" className="mt-7 rounded-xl border-2 border-red-300 bg-red-50 p-5">
+              <p className="text-[19px] font-semibold text-red-900">Het versturen is niet gelukt</p>
+              {melding.regels.map((f) => (
+                <p key={f} className="mt-2 text-[18px] leading-relaxed text-red-900">{f}</p>
+              ))}
+              <p className="mt-3 text-[17px] leading-relaxed text-red-900/85">
+                Alles wat u heeft ingevuld staat er nog, ook uw handtekening.
+              </p>
+              {!melding.wachtOpVerversen && (
+                <p className="mt-4">
+                  <button type="button" onClick={versturen} disabled={bezig} className="btn-klant-rand">
+                    Opnieuw proberen
+                  </button>
+                </p>
+              )}
             </div>
           )}
         </div>
 
         <div className="mt-8">
           <button type="button" onClick={versturen} disabled={bezig} className="btn-klant">
-            {bezig ? "Bezig met ondertekenen…" : "Contract ondertekenen"}
+            {bezig ? "Bezig met versturen…" : "Contract ondertekenen"}
           </button>
         </div>
 
@@ -287,29 +356,73 @@ function Ondertekenen({ token, gegevens }: { token: string; gegevens: Gegevens }
 
 function Bedankt({ contract }: { contract: KlantContract }) {
   const af = contract.status === "goedgekeurd";
+  const email = contract.klantEmail?.trim();
+
+  // De stappen hieronder beschrijven wat er na het ondertekenen echt gebeurt:
+  // Sjors krijgt een melding, keurt het contract goed, en pas dán wordt de
+  // PDF gemaakt en gemaild (zie app/api/beheer/contracten/[id]/goedkeuren).
+  const stappen = [
+    "Sjors krijgt direct bericht en kijkt uw overeenkomst na.",
+    "Hij zet er zijn eigen handtekening onder.",
+    email
+      ? `U ontvangt de volledige overeenkomst daarna als PDF per e-mail op ${email}.`
+      : "Daarna neemt Sjors contact met u op om u de overeenkomst toe te sturen.",
+  ];
 
   return (
     <>
       <div className="text-center">
-        <svg viewBox="0 0 84 84" aria-hidden className="mx-auto h-20 w-20">
+        <svg viewBox="0 0 84 84" aria-hidden className="mx-auto h-24 w-24">
           <circle cx="42" cy="42" r="40" fill="none" stroke="#2E6A4D" strokeWidth="4" />
           <path d="M25 43l11 11 23-25" fill="none" stroke="#2E6A4D" strokeWidth="5"
             strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <h1 className="mt-6 font-serif text-[34px] font-light leading-tight tracking-tightest text-ink">
-          Bedankt, {voornaam(contract.signerNaam || contract.klantNaam)}
+        <h1 className="mt-6 font-serif text-[34px] font-light leading-tight tracking-tightest text-ink sm:text-[40px]">
+          {af ? "Uw contract is definitief" : "Uw contract is ontvangen"}
         </h1>
         <p className="klant-lead mx-auto mt-4 max-w-lg">
           {af
-            ? "Uw contract is door ons beiden ondertekend."
-            : "Uw contract is ondertekend. Sjors krijgt hiervan bericht en stuurt u daarna het definitieve contract."}
+            ? "Uw huurovereenkomst is door ons beiden ondertekend."
+            : `Dank u wel${
+                voornaam(contract.signerNaam || contract.klantNaam)
+                  ? `, ${voornaam(contract.signerNaam || contract.klantNaam)}`
+                  : ""
+              }. Wij hebben uw ondertekende huurovereenkomst goed ontvangen.`}
         </p>
       </div>
 
-      <section className="mt-12">
+      {!af && (
+        <section className="mt-9 rounded-2xl border border-ink/15 bg-sand-50 p-5 sm:p-7">
+          <h2 className="text-[20px] font-semibold tracking-tight text-ink">
+            Wat gebeurt er nu?
+          </h2>
+          <ol className="mt-4 space-y-4">
+            {stappen.map((stap, i) => (
+              <li key={stap} className="flex gap-4">
+                <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-ink text-[17px] font-semibold text-white">
+                  {i + 1}
+                </span>
+                <span className="pt-1 text-[18px] leading-relaxed text-ink/85">{stap}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-6 text-[18px] leading-relaxed text-ink">
+            U hoeft verder niets te doen.
+          </p>
+        </section>
+      )}
+
+      <section className="mt-10">
         <h2 className="klant-h2">Uw huur in het kort</h2>
         <div className="mt-4"><HuurInHetKort contract={contract} /></div>
       </section>
+
+      <p className="mt-9 text-center text-[17px] text-ink/60">
+        Vragen? Bel Sjors op{" "}
+        <a href="tel:+31620651528" className="font-semibold text-ink underline underline-offset-4">
+          {VERHUURDER.telefoon}
+        </a>
+      </p>
     </>
   );
 }
