@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     locale: "nl_NL",
     images: [
       {
-        url: "/og.png",
+        url: "/og.jpg",
         width: 1200,
         height: 630,
         alt: "SMX Rental — stretchtent verhuur in Limburg",
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     title: "SMX Rental — Stretchtent verhuur in Limburg",
     description:
       "Luxe stretchtent huren in Limburg: 7,5 × 10 meter, op- en afbouw inbegrepen, vaste prijzen.",
-    images: ["/og.png"],
+    images: ["/og.jpg"],
   },
   robots: {
     index: true,
