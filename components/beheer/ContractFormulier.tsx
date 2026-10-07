@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TARIEVEN } from "@/lib/prijzen";
-import { berekenOverzicht } from "@/lib/contracten/regels";
+import { berekenOverzicht, prijsruimte } from "@/lib/contracten/regels";
 import { transportVoorProducten, type TransportResult } from "@/lib/transport";
 import { euro, schuifDatum, dagenTot } from "@/lib/contracten/formatteer";
 import { api, ApiFout, type FormulierInvoer } from "@/lib/contracten/client";
@@ -24,12 +24,27 @@ const LEEG: FormulierInvoer = {
   feestDatum: "", opbouwDatum: "", opbouwTijd: "19:00", afbouwDatum: "", afbouwTijd: "11:00",
   tent: true, shotjesbar: false, extraDagen: 0, verlichting: false,
   zijwanden: 0, zijwandExtraDagen: 0, klinkers: false,
-  transportEuro: 0, afspraken: "",
+  transportEuro: 0, handmatigTotaalEuro: null, afspraken: "",
 };
 
 function uitContract(c: Contract): FormulierInvoer {
-  const { transportCent, ...rest } = c;
-  return { ...LEEG, ...rest, transportEuro: transportCent / 100 };
+  const { transportCent, handmatigTotaalCent, ...rest } = c;
+  return {
+    ...LEEG,
+    ...rest,
+    transportEuro: transportCent / 100,
+    handmatigTotaalEuro: handmatigTotaalCent == null ? null : handmatigTotaalCent / 100,
+  };
+}
+
+/** De invoer zoals de prijsberekening hem verwacht: bedragen in centen. */
+function alsInvoer(f: FormulierInvoer) {
+  return {
+    ...f,
+    transportCent: Math.round((f.transportEuro || 0) * 100),
+    handmatigTotaalCent:
+      f.handmatigTotaalEuro == null ? null : Math.round(f.handmatigTotaalEuro * 100),
+  };
 }
 
 export default function ContractFormulier({ bestaand }: { bestaand?: Contract }) {
@@ -49,10 +64,9 @@ export default function ContractFormulier({ bestaand }: { bestaand?: Contract })
     setAuto((s) => { if (!s.has(k as string)) return s; const n = new Set(s); n.delete(k as string); return n; });
   };
 
-  const overzicht = useMemo(
-    () => berekenOverzicht({ ...f, transportCent: Math.round((f.transportEuro || 0) * 100) }),
-    [f]
-  );
+  const overzicht = useMemo(() => berekenOverzicht(alsInvoer(f)), [f]);
+  /** Wat het zou kosten zonder prijsafspraak, en hoe ver de prijs omlaag kan. */
+  const ruimte = useMemo(() => prijsruimte(alsInvoer(f)), [f]);
 
   /* ---- transport automatisch berekenen ---- */
   const [transport, setTransport] = useState<TransportResult | null>(null);
@@ -145,6 +159,13 @@ export default function ContractFormulier({ bestaand }: { bestaand?: Contract })
       lokaal.push("Vul een telefoonnummer of een e-mailadres in — anders kunt u het contract niet versturen.");
     if (!f.feestDatum) lokaal.push("Vul de datum van het feest in.");
     if (!f.tent && !f.shotjesbar) lokaal.push("Kies minstens één product.");
+    if (f.handmatigTotaalEuro != null && (f.tent || f.shotjesbar)
+        && Math.round(f.handmatigTotaalEuro * 100) < ruimte.laagsteCent) {
+      lokaal.push(
+        `De prijs kan niet lager dan ${euro(ruimte.laagsteCent)}: het verschil gaat van ` +
+        `${ruimte.dragerOmschrijving ?? "het hoofdproduct"} af en die regel kan niet onder nul.`
+      );
+    }
     if (lokaal.length) {
       setFouten(lokaal);
       return;
@@ -164,6 +185,24 @@ export default function ContractFormulier({ bestaand }: { bestaand?: Contract })
   };
 
   const isAuto = (k: string) => auto.has(k);
+
+  /**
+   * Wat de prijsafspraak met het overzicht doet: op welke regel het verschil
+   * landt en wat die regel wordt. Zo ziet Sjors meteen wat hij verandert.
+   */
+  const prijsafspraak = useMemo(() => {
+    if (f.handmatigTotaalEuro == null || !ruimte.dragerOmschrijving) return null;
+    const gewenstCent = Math.round(f.handmatigTotaalEuro * 100);
+    const zonder = berekenOverzicht({ ...alsInvoer(f), handmatigTotaalCent: null });
+    const regel = zonder.regels.find((r) => r.omschrijving === ruimte.dragerOmschrijving);
+    if (!regel) return null;
+    return {
+      drager: ruimte.dragerOmschrijving,
+      vanCent: regel.bedragCent,
+      naarCent: regel.bedragCent + (gewenstCent - zonder.totaalCent),
+      teLaag: gewenstCent < ruimte.laagsteCent,
+    };
+  }, [f, ruimte]);
 
   const hoofdletter = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
@@ -370,6 +409,59 @@ export default function ContractFormulier({ bestaand }: { bestaand?: Contract })
             <p className="text-red-700">{transport.error}</p>
           )}
         </div>
+      </Blok>
+
+      <Blok titel="Prijs"
+        hint="Normaal rekent het contract met de vaste tarieven. Spreekt u met deze klant een ander bedrag af, dan zet u dat hier.">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-ink/55">Volgens de tarieven</p>
+            <p className="font-serif text-2xl font-light tracking-tight text-ink">
+              {euro(ruimte.normaalCent)}
+            </p>
+          </div>
+          <Schakelaar
+            aan={f.handmatigTotaalEuro != null}
+            zet={(v) => zet("handmatigTotaalEuro", v ? Math.round(ruimte.normaalCent / 100) : null)}
+            label="Prijs handmatig aanpassen"
+          />
+        </div>
+
+        {f.handmatigTotaalEuro != null && (
+          <div className="mt-6 border-t border-ink/10 pt-6">
+            <Veld label="Totaalbedrag voor deze klant">
+              <div className="flex items-center gap-2">
+                <span className="text-ink/50">€</span>
+                <input type="number" min={0} step={1} inputMode="numeric"
+                  className="field-input w-40 text-right"
+                  value={f.handmatigTotaalEuro}
+                  onChange={(e) => zet("handmatigTotaalEuro", Math.max(0, Number(e.target.value) || 0))} />
+              </div>
+            </Veld>
+
+            {prijsafspraak && (
+              <p className={`mt-4 rounded-xl px-4 py-3 text-sm leading-relaxed ring-1 ${
+                prijsafspraak.teLaag
+                  ? "bg-red-50 text-red-900 ring-red-200"
+                  : "bg-sand-50 text-ink/75 ring-ink/10"
+              }`}>
+                {prijsafspraak.teLaag ? (
+                  <>
+                    <strong className="font-semibold">Dit kan niet:</strong> het verschil gaat van{" "}
+                    {prijsafspraak.drager} af, en die regel zou dan onder nul komen. Het laagste
+                    bedrag is {euro(ruimte.laagsteCent)}.
+                  </>
+                ) : (
+                  <>
+                    Het verschil komt op de regel <strong className="font-semibold">{prijsafspraak.drager}</strong>:{" "}
+                    {euro(prijsafspraak.vanCent)} wordt {euro(prijsafspraak.naarCent)}. Verder blijft
+                    het contract precies hetzelfde — de klant ziet nergens dat dit een andere prijs is.
+                  </>
+                )}
+              </p>
+            )}
+          </div>
+        )}
       </Blok>
 
       <Blok titel="Bijzondere afspraken"

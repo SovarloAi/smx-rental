@@ -4,6 +4,8 @@
  */
 
 import { AccessFout, vereisBeheerder } from "./access";
+import { heeftProduct, prijsruimte } from "./regels";
+import { euro } from "@/lib/prijzen";
 import { alleenPdfTekens } from "./tekens";
 import type { ContractInvoer } from "./types";
 
@@ -170,6 +172,7 @@ export function leesContractInvoer(body: unknown): Validatie {
     zijwandExtraDagen: Math.max(0, Math.floor(Number(b.zijwandExtraDagen) || 0)),
     klinkers: Boolean(b.klinkers),
     transportCent: euroNaarCent(b.transportEuro ?? b.transportCent, "transportCent" in b),
+    handmatigTotaalCent: handmatigePrijs(b),
     afspraken: tekstMeerRegels(b.afspraken, 2000),
   };
 
@@ -195,8 +198,31 @@ export function leesContractInvoer(body: unknown): Validatie {
   if (invoer.klantEmail && !/^\S+@\S+\.\S+$/.test(invoer.klantEmail)) {
     fouten.push("Het e-mailadres ziet er niet geldig uit.");
   }
+  if (invoer.handmatigTotaalCent != null && heeftProduct(invoer)) {
+    // Het verschil gaat van de stretchtent af (of van de Shotjesbar). Zakt die
+    // regel onder nul, dan klopt het overzicht niet meer en weigeren we het.
+    const ruimte = prijsruimte(invoer);
+    if (invoer.handmatigTotaalCent < ruimte.laagsteCent) {
+      fouten.push(
+        `De prijs kan niet lager dan ${euro(ruimte.laagsteCent)}: het verschil gaat van ` +
+          `${ruimte.dragerOmschrijving ?? "het hoofdproduct"} af en die regel kan niet onder nul.`
+      );
+    }
+  }
 
   return fouten.length ? { ok: false, fouten } : { ok: true, invoer };
+}
+
+/**
+ * De handmatig afgesproken totaalprijs, of null als die er niet is. Een leeg
+ * veld, null of iets onleesbaars betekent: gewoon het tarief aanhouden.
+ */
+function handmatigePrijs(b: Record<string, unknown>): number | null {
+  const ruw = "handmatigTotaalEuro" in b ? b.handmatigTotaalEuro : b.handmatigTotaalCent;
+  if (ruw === null || ruw === undefined || ruw === "") return null;
+  const n = Number(ruw);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return "handmatigTotaalEuro" in b ? Math.round(n * 100) : Math.round(n);
 }
 
 /** Accepteert zowel een bedrag in euro's als een al omgerekend centbedrag. */

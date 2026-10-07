@@ -25,7 +25,7 @@ const KOLOMMEN = `
   klant_telefoon, klant_email, plaatsingsadres, feest_datum, opbouw_datum,
   opbouw_tijd, afbouw_datum, afbouw_tijd, tent, shotjesbar, extra_dagen,
   verlichting, zijwanden, zijwand_extra_dagen, klinkers, transport_cent,
-  afspraken, totaal_cent, regels_json,
+  afspraken, totaal_cent, regels_json, handmatig_totaal_cent,
   voorwaarden_versie, signer_naam, signer_plaats, signature_key, signed_ip,
   signed_user_agent, document_hash, op_papier, papier_key, pdf_key, gezien
 `;
@@ -71,6 +71,8 @@ function naarContract(r: Rij): Contract {
     zijwandExtraDagen: n("zijwand_extra_dagen"),
     klinkers: b("klinkers"),
     transportCent: n("transport_cent"),
+    handmatigTotaalCent:
+      r["handmatig_totaal_cent"] == null ? null : Number(r["handmatig_totaal_cent"]),
     afspraken: s("afspraken"),
 
     totaalCent: n("totaal_cent"),
@@ -155,8 +157,8 @@ export async function maakContract(invoer: ContractInvoer): Promise<Contract> {
         plaatsingsadres, feest_datum, opbouw_datum, opbouw_tijd, afbouw_datum, afbouw_tijd,
         tent, shotjesbar, extra_dagen, verlichting, zijwanden, zijwand_extra_dagen,
         klinkers, transport_cent, afspraken, totaal_cent, regels_json,
-        voorwaarden_versie, gezien
-      ) VALUES (?,?,'concept',?,?, ?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?,1)`
+        handmatig_totaal_cent, voorwaarden_versie, gezien
+      ) VALUES (?,?,'concept',?,?, ?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?,?,1)`
     )
     .bind(
       id, token, t, t,
@@ -168,7 +170,7 @@ export async function maakContract(invoer: ContractInvoer): Promise<Contract> {
       norm.verlichting ? 1 : 0, norm.zijwanden, norm.zijwandExtraDagen,
       norm.klinkers ? 1 : 0, norm.transportCent,
       invoer.afspraken, overzicht.totaalCent, JSON.stringify(overzicht.regels),
-      HUIDIGE_VERSIE
+      invoer.handmatigTotaalCent, HUIDIGE_VERSIE
     )
     .run();
 
@@ -202,7 +204,7 @@ export async function wijzigContract(
         opbouw_datum = ?, opbouw_tijd = ?, afbouw_datum = ?, afbouw_tijd = ?,
         tent = ?, shotjesbar = ?, extra_dagen = ?, verlichting = ?, zijwanden = ?,
         zijwand_extra_dagen = ?, klinkers = ?, transport_cent = ?,
-        afspraken = ?, totaal_cent = ?, regels_json = ?
+        afspraken = ?, totaal_cent = ?, regels_json = ?, handmatig_totaal_cent = ?
        WHERE id = ?`
     )
     .bind(
@@ -213,6 +215,7 @@ export async function wijzigContract(
       norm.verlichting ? 1 : 0, norm.zijwanden, norm.zijwandExtraDagen,
       norm.klinkers ? 1 : 0, norm.transportCent, invoer.afspraken,
       overzicht.totaalCent, JSON.stringify(overzicht.regels),
+      invoer.handmatigTotaalCent,
       id
     )
     .run();

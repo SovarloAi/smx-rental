@@ -92,6 +92,11 @@ export const api = {
 };
 
 /** Wat het formulier verstuurt: bedragen in euro's, de server rekent om. */
-export type FormulierInvoer = Omit<ContractInvoer, "transportCent"> & {
+export type FormulierInvoer = Omit<
+  ContractInvoer,
+  "transportCent" | "handmatigTotaalCent"
+> & {
   transportEuro: number;
+  /** Handmatig afgesproken totaalprijs in hele euro's, of null voor het tarief. */
+  handmatigTotaalEuro: number | null;
 };

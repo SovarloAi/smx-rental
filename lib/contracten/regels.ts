@@ -12,6 +12,9 @@
  * - Zijwanden: z × € 50, plus z × (aantal extra dagen dat ze blijven staan) ×
  *   € 10. Dat aantal vult Sjors apart in en kan nul zijn.
  * - Transport: handmatig bedrag of automatisch uit de bestaande calculator.
+ * - Is er een handmatige totaalprijs afgesproken, dan komt het verschil met de
+ *   optelsom op de regel van de stretchtent, of op die van de Shotjesbar als
+ *   er geen tent gehuurd wordt.
  */
 
 import { TARIEVEN, MAX_ZIJWANDEN, euro } from "@/lib/prijzen";
@@ -61,12 +64,17 @@ export function berekenOverzicht(invoer: ContractInvoer): Prijsoverzicht {
   const dagen = n.extraDagen;
   const meervoud = dagen > 1 ? "en" : "";
 
+  // Op welke regel een handmatige prijs landt. We onthouden de plek meteen bij
+  // het opbouwen; zoeken op omschrijving zou breken zodra een tekst wijzigt.
+  let regelTent = -1;
+  let regelBar = -1;
+
   if (n.tent) {
-    regels.push({
+    regelTent = regels.push({
       omschrijving: "Stretchtent 7,5 × 10 m",
       toelichting: "Weekendtarief, incl. bevestigingsmaterialen, op- en afbouw",
       bedragCent: TARIEVEN.tent,
-    });
+    }) - 1;
 
     if (dagen > 0) {
       regels.push({
@@ -112,11 +120,11 @@ export function berekenOverzicht(invoer: ContractInvoer): Prijsoverzicht {
   }
 
   if (n.shotjesbar) {
-    regels.push({
+    regelBar = regels.push({
       omschrijving: "Shotjesbar",
       toelichting: "Per weekend; de flessen blijven na de huur van u",
       bedragCent: TARIEVEN.shotjesbar,
-    });
+    }) - 1;
 
     if (dagen > 0) {
       regels.push({
@@ -135,9 +143,61 @@ export function berekenOverzicht(invoer: ContractInvoer): Prijsoverzicht {
     });
   }
 
+  const dragerRegel = regelTent >= 0 ? regelTent : regelBar;
+  const metPrijs = pasPrijsafspraakToe(regels, dragerRegel, invoer.handmatigTotaalCent);
+
   return {
-    regels,
-    totaalCent: regels.reduce((som, r) => som + r.bedragCent, 0),
+    regels: metPrijs,
+    totaalCent: metPrijs.reduce((som, r) => som + r.bedragCent, 0),
+  };
+}
+
+/**
+ * Verwerkt een handmatig afgesproken totaalprijs.
+ *
+ * Het verschil met de optelsom gaat naar één regel — de stretchtent, of de
+ * Shotjesbar als er geen tent is — zodat het overzicht precies op het
+ * afgesproken bedrag uitkomt. Er komt bewust géén kortingsregel bij: de klant
+ * hoort hetzelfde contract te zien als ieder ander, alleen met zijn eigen prijs.
+ *
+ * Zou de dragende regel onder nul duiken, dan laten we het overzicht ongemoeid.
+ * De invoercontrole weigert zo'n bedrag al, dit is het vangnet daarachter.
+ */
+function pasPrijsafspraakToe(
+  regels: Prijsregel[],
+  drager: number,
+  gewenstCent: number | null | undefined
+): Prijsregel[] {
+  if (gewenstCent == null || drager < 0) return regels;
+
+  const gewenst = Math.max(0, Math.round(gewenstCent));
+  const huidig = regels.reduce((som, r) => som + r.bedragCent, 0);
+  const nieuwBedrag = regels[drager].bedragCent + (gewenst - huidig);
+  if (nieuwBedrag < 0) return regels;
+
+  return regels.map((r, i) => (i === drager ? { ...r, bedragCent: nieuwBedrag } : r));
+}
+
+/**
+ * Wat het contract zou kosten zónder prijsafspraak, plus hoe ver de prijs
+ * omlaag kan. Lager dan de overige regels bij elkaar kan niet: dan zou de
+ * stretchtent of de Shotjesbar een negatief bedrag krijgen.
+ */
+export function prijsruimte(invoer: ContractInvoer): {
+  normaalCent: number;
+  laagsteCent: number;
+  dragerOmschrijving: string | null;
+} {
+  const zonder = berekenOverzicht({ ...invoer, handmatigTotaalCent: null });
+  const drager =
+    zonder.regels.find((r) => r.omschrijving.startsWith("Stretchtent")) ??
+    zonder.regels.find((r) => r.omschrijving === "Shotjesbar") ??
+    null;
+
+  return {
+    normaalCent: zonder.totaalCent,
+    laagsteCent: zonder.totaalCent - (drager?.bedragCent ?? 0),
+    dragerOmschrijving: drager?.omschrijving ?? null,
   };
 }
 

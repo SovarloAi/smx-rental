@@ -177,6 +177,15 @@ export default function ContractDetail({ id }: { id: string }) {
             </tr>
           </tbody>
         </table>
+        {c.handmatigTotaalCent != null && (
+          // Alleen hier te zien, niet op het contract van de klant: dat toont
+          // gewoon het overzicht met de afgesproken bedragen.
+          <p className="mt-4 rounded-xl bg-amber-50 p-3.5 text-sm leading-relaxed text-amber-900 ring-1 ring-amber-200">
+            <span className="font-semibold">Prijs handmatig gezet</span> op{" "}
+            {euro(c.handmatigTotaalCent)}. Het verschil staat verwerkt in de regel hierboven;
+            de klant ziet hier niets van.
+          </p>
+        )}
         {c.afspraken && (
           <p className="mt-4 rounded-xl bg-sand-50 p-3.5 text-sm leading-relaxed text-ink/75">
             <span className="font-semibold text-ink">Bijzondere afspraken: </span>

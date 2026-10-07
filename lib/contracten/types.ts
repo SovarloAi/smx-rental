@@ -58,6 +58,13 @@ export type ContractInvoer = {
   zijwandExtraDagen: number;
   klinkers: boolean;
   transportCent: number;
+  /**
+   * Een handmatig afgesproken totaalprijs in centen, of null voor het gewone
+   * tarief. Het verschil komt op de regel van de stretchtent (of van de
+   * Shotjesbar als er geen tent is), zodat het overzicht optelt tot dit bedrag
+   * zonder dat er een kortingsregel in het contract verschijnt.
+   */
+  handmatigTotaalCent: number | null;
   afspraken: string;
 };
 
