@@ -93,11 +93,11 @@ export default function Footer() {
         <div className="mt-3 flex flex-col items-center gap-2 border-t border-ink/8 pt-7 text-sm text-ink/40 sm:flex-row sm:justify-between">
           <p>© 2025 SMX Rental. Alle rechten voorbehouden.</p>
           <p className="text-xs">
-            Built by{" "}
+            Ontwerp &amp; realisatie door{" "}
             <a
               href="https://sovarlo.com"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener"
               className="font-medium text-ink/60 transition-colors hover:text-ink"
             >
               Sovarlo AI
